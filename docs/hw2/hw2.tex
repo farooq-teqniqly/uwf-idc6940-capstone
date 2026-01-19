@@ -23,49 +23,66 @@
 
 \section{Background/Motivation}
 
-The transition to electric vehicles (EVs) in ride-hailing fleets represents a critical response to climate change. The New York City Taxi and Limousine Commission (TLC) has committed to electrifying its entire fleet by 2030, aiming to reduce approximately 600,000 tons of CO$_2$ emissions annually \cite{tlc2022}. However, this transition introduces substantial operational challenges that existing research has not adequately addressed.
+The transition of ride-hailing fleets to electric vehicles (EVs) represents a critical response to climate change. The New York City Taxi and Limousine Commission (TLC) has committed to electrifying its entire fleet by 2030, aiming to reduce approximately 600,000 tons of CO$_2$ emissions annually \cite{tlc2022}. However, this transition introduces substantial operational challenges that have not been adequately addressed in the existing research.
 
-Ma et al. (2024) identify three critical gaps: most prior studies assume constant energy prices and uncapacitated (unlimited capacity) charging stations \cite{alkanj2020,shi2020}. Existing models fail to explicitly account for vehicle queuing at charging stations, and previous approaches lack minimum charging duration constraints and do not optimize charging amounts based on remaining daily energy needs, leading to inefficient over-charging that reduces vehicle availability.
+Ma et al. (2024) identify three critical gaps: 
+\begin{enumerate}
+    \item Most prior studies assume constant energy prices and uncapacitated (unlimited capacity) charging stations \cite{alkanj2020,shi2020}.
+    \item Existing models fail to explicitly account for vehicle queuing at charging stations.
+    \item Previous approaches lack minimum charging duration constraints and do not optimize charging amounts based on remaining daily energy needs, leading to inefficient over-charging that reduces vehicle availability.
+\end{enumerate}
 
-The significance of this research lies in its direct impact on the economic viability of electric ride-hailing operations. With limited fast-charging infrastructure and the need for multiple daily charging sessions, effective charging management becomes essential for profitability, given volatile customer demand and time-varying electricity prices.
+The significance of this study lies in its direct impact on the economic viability of electric ride-hailing operations. With limited fast-charging infrastructure and the need for multiple daily charging sessions, effective charging management is essential for profitability, given the volatile customer demand and time-varying electricity prices.
 
 \section{Methods Used}
 
 Ma et al. (2024) propose a sequential Mixed Integer Linear Programming (MILP) approach called ``CongestionAware'' that decomposes the problem into three models operating at different temporal scales.
 
-\textbf{Model P1: Day-Ahead Charging Schedule Planning} operates on 30-minute decision epochs, minimizing total charging operational costs while anticipating vehicles' energy needs and waiting times. The model incorporates realistic constraints: minimum charging duration requirements, maximum state-of-charge thresholds, and charger capacity constraints.
+\textbf{Model P1: Day-Ahead Charging Schedule Planning} operates on 30-minute decision epochs, minimizing total charging operational costs while anticipating vehicles' energy needs and waiting times. The model incorporates realistic constraints, including minimum charging duration requirements, maximum state-of-charge thresholds, and charger capacity constraints.
 
 \textbf{Model P2: Batch Vehicle Dispatch} handles real-time vehicle dispatching on one minute epochs, maximizing profit by matching idle vehicles with customers while respecting state of charge and maximum waiting time constraints.
 
 \textbf{Model P3: Online Vehicle-to-Charger Assignment} determines optimal vehicle to charger assignments in real-time, minimizing total charging operational time while adapting the day ahead plan based on current system state.
 
-A key innovation is the \textbf{reactive adaptation mechanism} that dynamically adjusts the day ahead plan throughout the day, maintaining a pool of vehicles needing to charge and implementing a smart partial recharge strategy that anticipates remaining daily energy needs. The authors implement a discrete event simulation framework integrating all three models. The methodology explicitly models stochastic customer demand, charging congestion dynamics, and time-varying energy prices---factors that previous studies have simplified or ignored.
+A key innovation is the \textbf{reactive adaptation mechanism} that dynamically adjusts the day-ahead plan throughout the day, maintaining a pool of vehicles that need to charge and implementing a smart partial recharge strategy that anticipates the remaining daily energy needs. The authors implemented a discrete-event simulation framework that integrates all three models. The methodology explicitly models the stochastic customer demand, charging congestion dynamics, and time-varying energy prices. Previous studies have simplified or ignored these aspects.
 
 \section{Significance of the Work}
 
-Using realistic NYC yellow taxi data with 100 electric vehicles, the CongestionAware policy outperformed four benchmark approaches. For scenarios with 3,000 customers per day, the policy increased total profit by 7.65\% to 10.69\% and improved service rates by 7\% to 10.8\%. For scenarios with 4,000 customers per day, profit increased by 8.76\% to 15.05\%, and service rates improved by 7.9\% to 12.3\%. These gains were achieved through significant reductions in charging waiting times and more efficient charging operations.
+Using realistic NYC yellow taxi data with 100 electric vehicles, the CongestionAware policy outperformed the four benchmark approaches. For scenarios with 3,000 customers per day, the policy increased the total profit by 7.65\% to 10.69\% and improved the service rates by 7\% to 10.8\%. For scenarios with 4,000 customers per day, the profit increased by 8.76\% to 15.05\%, and the service rates improved by 7.9\% to 12.3\%. These gains were achieved through significant reductions in the charging waiting times and more efficient charging operations.
 
-The work makes several important contributions: it introduces realistic charging operation modeling including minimum charging duration constraints, maximum waiting time limits, and explicit queuing dynamics; it demonstrates the value of anticipating vehicles' energy needs rather than using simple threshold-based policies; and it shows that partial recharge strategies significantly improve system performance. The results demonstrate that effective charging management can substantially improve profitability and service quality for transport network companies.
+This study makes several important contributions. 
+\begin{enumerate}
+    \item It introduces realistic charging operation modeling including minimum charging duration constraints, maximum waiting time limits, and explicit queuing dynamics.
+    \item It demonstrates the value of anticipating vehicles' energy needs rather than using simple threshold-based policies.
+    \item It shows that partial recharge strategies significantly improve system performance.
+\end{enumerate}
+The results demonstrate that effective charging management can substantially improve profitability and the service quality.
 
 \section{Connection to Other Work}
 
-Ma et al. (2024) build upon optimization-based and reinforcement learning approaches. They reference model predictive control approaches \cite{zhang2016,iacobucci2019} but note these are limited to small problem sizes and assume uncapacitated charging stations. Their work extends sequential MILP approaches \cite{jamshidi2021,zalesak2021,ma2021} by explicitly modeling charging queuing times and incorporating more realistic constraints.
+Ma et al. (2024) build on optimization-based and reinforcement learning approaches. They referenced model predictive control approaches \cite{zhang2016,iacobucci2019} but noted that these are limited to small problem sizes and assume uncapacitated charging stations. Their work extends sequential MILP approaches \cite{jamshidi2021,zalesak2021,ma2021} by explicitly modeling queuing times and incorporating more realistic constraints into the model.
 
-The paper differs from earlier sequential MILP studies: Jamshidi et al. (2021) approximate waiting times without explicit queuing models; Zalesak and Samaranayake (2021) do not consider heterogeneous charging infrastructure or time-dependent energy prices; Ma (2021) assumes linear charging speeds and homogeneous infrastructure. The authors also situate their work relative to reinforcement learning approaches \cite{alkanj2020,yan2023,kullman2021,ahadi2023}, noting that RL methods often assume uncapacitated charging stations and full-recharge policies. This work distinguishes itself through comprehensive treatment of realistic charging constraints.
+This study differs from earlier sequential MILP studies in the following ways: 
+\begin{enumerate}
+    \item Jamshidi et al. (2021) approximate waiting times without explicit queuing models.
+    \item Zalesak and Samaranayake (2021) do not consider heterogeneous charging infrastructure or time-dependent energy prices.
+    \item Ma (2021) assumes linear charging speeds and homogeneous infrastructure.
+\end{enumerate}
+The authors also situate their work relative to reinforcement learning approaches \cite{alkanj2020,yan2023,kullman2021,ahadi2023}, noting that RL methods often assume uncapacitated charging stations and full recharge policies. This study is distinguished by the comprehensive treatment of realistic charging constraints.
 
 \section{Relevance to Capstone Project}
 
-This paper is highly relevant to my capstone project, which extends my previous time-series forecasting work on Uber trip durations (using ARIMA models) by incorporating machine learning-based prediction methods and comparing their performance. My capstone will use Uber ride-sharing data from NYC TLC to develop both time-series forecasting and ML-based prediction models, then compare their accuracy. While the paper focuses on charging management, it provides methodological insights for trip duration prediction.
+This paper is highly relevant to my capstone project, which extends my previous time-series forecasting work on Uber trip durations (using ARIMA models) by incorporating machine learning-based prediction methods and comparing their performance. My capstone will use Uber ride-sharing data from the NYC TLC to develop both time-series forecasting and ML-based prediction models and then compare their accuracy. Although this study focuses on charging management, it provides insights into predicting the duration of a trip.
 
-The paper's treatment of stochastic customer demand directly relates to understanding trip duration patterns. The authors use NYC yellow taxi data and demonstrate how demand volatility affects vehicle operations---insights crucial for predicting trip durations. While the paper uses yellow taxi data, my capstone will use Uber ride-sharing data from NYC TLC. The day-ahead planning approach that anticipates energy consumption based on historical patterns parallels the need to predict trip durations using both time-series and ML methods.
+The treatment of stochastic customer demand in this study is directly related to understanding trip duration patterns. The authors used NYC yellow taxi data to demonstrate how demand volatility affects vehicle operations. These insights are crucial for predicting trip duration. While this study uses yellow taxi data, my capstone will use Uber ride-sharing data from NYC TLC. The day-ahead planning approach, which anticipates energy consumption based on historical patterns, parallels the need to predict trip durations using both time-series and ML methods.
 
-The paper's emphasis on anticipating future needs based on historical patterns aligns with time-series forecasting methods, while its consideration of multiple factors suggests ML models could capture complex non-linear relationships. My capstone focuses on developing and evaluating both time-series forecasting models (extending my previous ARIMA work) and ML-based prediction models, then comparing their performance. While accurate trip duration predictions could benefit charging optimization frameworks in future work, that integration is outside my capstone scope.
+The paper's emphasis on anticipating future needs based on historical patterns aligns with time-series forecasting. The consideration of multiple factors suggests that ML models can capture complex nonlinear relationships. My capstone focuses on developing and evaluating both time-series forecasting models (extending my previous ARIMA work) and ML-based prediction models and comparing their performance. While accurate trip duration predictions could benefit charging optimization frameworks in future work, this is outside the scope of this study.
 
 \section{Conclusion}
 
-Ma et al. (2024) present a comprehensive approach to coordinated vehicle dispatching and charging scheduling for electric ride-hailing fleets. The work addresses significant gaps by explicitly modeling charging congestion, incorporating realistic constraints, and developing an anticipative planning framework with reactive adaptation. The substantial performance improvements (up to 15\% profit increase and 19\% service rate improvement) validate the importance of sophisticated charging management.
+Ma et al. (2024) present a comprehensive approach to coordinated vehicle dispatching and charging scheduling for electric ride-hailing fleets. This study addresses significant gaps by explicitly modeling charging congestion, incorporating realistic constraints, and developing an anticipative planning framework with reactive adaptation. The substantial performance improvements (up to 15\% profit increase and 19\% service rate improvement) validate the importance of sophisticated charging management in EVs.
 
-For my capstone project comparing time-series forecasting and ML-based prediction methods for trip duration using Uber ride-sharing data from NYC TLC, this paper provides valuable insights into temporal patterns, demand forecasting, and the challenges of modeling stochastic demand in ride-hailing systems. The paper's approach to anticipating future needs based on historical patterns and multiple factors aligns with both time-series and ML methodologies. My capstone focuses on extending my previous ARIMA work with ML-based prediction methods and comparing their performance.
+For my capstone project comparing time-series forecasting and ML-based prediction methods for trip duration using Uber ride-sharing data from NYC TLC, this study provides valuable insights into temporal patterns, demand forecasting, and the challenges of modeling stochastic demand in ride-hailing systems. The approach of this study to anticipate future needs based on historical patterns and multiple factors aligns with both time-series and ML methodologies. My capstone focuses on extending my previous ARIMA work with ML-based prediction methods and comparing their performances.
 
 \bibliographystyle{plain}
 \bibliography{hw2}
