@@ -75,3 +75,45 @@ This capstone project extends previous time-series forecasting work on Uber trip
 - The focus is purely on trip duration forecasting/prediction and comparing time-series vs ML methods
 - Data source is Uber ride-sharing data from NYC TLC, not yellow taxi data
 - The project builds on previous ARIMA work but extends it with ML methods for comparison
+
+## Writing Style and Grammar Preferences
+
+When writing academic documents for this capstone project, follow these style and grammar preferences:
+
+### Academic Tone and Terminology
+
+- Use "this study" instead of "the paper" or "the work" for more formal academic tone
+- Use "this study" consistently throughout when referring to the work being reviewed
+- Use past tense when describing what authors did: "The authors used" not "The authors use"
+- Use "Although" instead of "While" in formal contexts (e.g., "Although this study focuses" not "While the paper focuses")
+
+### Structure and Clarity
+
+- Use enumerated lists (LaTeX `\begin{enumerate}`) for multiple items instead of semicolons or commas
+- Break up long sentences for clarity
+- Use "and then" instead of just "then" for sequential actions (e.g., "develop models and then compare")
+
+### Article Usage
+
+- Use definite articles consistently: "the four benchmark approaches" not "four benchmark approaches"
+- Use "the" before specific nouns: "the total profit", "the service rates", "the charging waiting times"
+
+### Terminology
+
+- Use "nonlinear" (one word) instead of "non-linear" (hyphenated)
+- Use "the duration of a trip" in some contexts for precision, not just "trip durations"
+- Use "day-ahead" (hyphenated) consistently
+- Use "discrete-event" (hyphenated) for simulation frameworks
+
+### Sentence Structure
+
+- Prefer active voice: "This study addresses" not "The work addresses"
+- Use more formal phrasing: "have not been adequately addressed" not "has not adequately addressed"
+- Separate related ideas into distinct sentences rather than long compound sentences
+- Use enumerated lists for clarity when presenting multiple points or contributions
+
+### Consistency
+
+- Maintain consistent terminology throughout (e.g., "time-series forecasting" vs "ML-based prediction")
+- Use consistent verb tenses within sections
+- Ensure parallel structure in lists and comparisons
