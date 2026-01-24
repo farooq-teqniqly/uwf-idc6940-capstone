@@ -23,13 +23,18 @@
 
 \section{Background/Motivation}
 
-Time series forecasting has become essential across numerous domains, enabling decision-makers to anticipate future trends. As forecasting techniques have evolved, a fundamental question has emerged: do modern machine learning methods outperform traditional statistical approaches, or do classical methods retain their effectiveness?
+Time-series forecasting, while important, relies on specialized knowledge of particular mathematical methods, such as ARIMA. While these methods have been proven to provide effective time series forecasting across numerous domains, there is a question on whether machine learning methods are better. Do machine learning methods outperform traditional time-series forecasting methods?
 
-Prabhat et al. (2024) address a critical gap by conducting a comprehensive empirical comparison between traditional statistical methods and machine learning techniques across multiple forecasting horizons \cite{prabhat2024}. The authors note that while numerous studies have employed neural network techniques since their introduction in 1964, the results have been inconsistent. Early large-scale competitions, such as the M3 Competition in 2000, demonstrated that automated artificial neural network methods performed below the most accurate statistical methods. Similarly, the NN3 competition in 2011 found that no machine learning approach surpassed the Theta method.
+There is a gap in the research, leading Prabhat et al. (2024) to attempt to provide an answer to the question of whether machine learning methods are more or less effective than traditional time-series methods \cite{prabhat2024}. The authors state that neural network techniques have been used for time-series forecasting since 1964, with inconsistent results.  In the M3 competition held in 2000, the Theta method performed better than neural networks. In the same vein, the NN3 competition of 2011 showed that no machine learning method performed better than the simpler Theta method.
 
-The significance of this research question extends beyond academic curiosity. As organizations increasingly rely on forecasting for critical business decisions, understanding which methods provide superior accuracy is essential. The authors argue that machine learning techniques, despite their computational complexity and nonlinear capabilities, have not been thoroughly evaluated in terms of overall forecasting performance. This gap raises concerns about whether ML approaches genuinely advance forecasting research or represent unnecessary complexity without corresponding benefits.
+Addressing the question of which methods are more effective are not merely academic. The implications of this question are broad as organizations increasingly rely on forecasting to make important business decisions. Therefore, finding more effective methods can serve as a competitive advantage. The authors position is that machine learning methods have not been sufficiently validated in the time-series forecasting domain. This gap makes this paper more relevant because time-series methods are relatively low cost in terms of compute for the explanatory power they provide. Are machine learning approaches adding additional complexity for little benefit?
 
-The primary objective is to empirically determine whether machine learning techniques outperform statistical methods and to identify conditions under which ML methods may be superior. The authors aim to establish how the advantages of ML approaches can be leveraged to improve forecasting accuracy.
+The authors' goals are twofold: 
+
+\begin{enumerate}
+    \item Systematically determine if machine learning methods outperform traditional time-series methods.
+    \item Catalog the machine learning approaches that can used to improve forecasting accuracy.
+\end{enumerate}
 
 \section{Methods Used}
 
