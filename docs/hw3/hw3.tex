@@ -25,7 +25,7 @@
 
 Time-series forecasting, while important, relies on specialized knowledge of particular mathematical methods, such as ARIMA. While these methods have been proven to provide effective time series forecasting across numerous domains, there is a question on whether machine learning methods are better. Do machine learning methods outperform traditional time-series forecasting methods?
 
-There is a gap in the research, leading Prabhat et al. (2024) to attempt to provide an answer to the question of whether machine learning methods are more or less effective than traditional time-series methods \cite{prabhat2024}. The authors state that neural network techniques have been used for time-series forecasting since 1964, with inconsistent results.  In the M3 competition held in 2000, the Theta method performed better than neural networks. In the same vein, the NN3 competition of 2011 showed that no machine learning method performed better than the simpler Theta method.
+There is a gap in the research, leading the authors to attempt to provide an answer to the question of whether machine learning methods are more or less effective than traditional time-series methods \cite{prabhat2024}. The authors state that neural network techniques have been used for time-series forecasting since 1964, with inconsistent results.  In the M3 competition held in 2000, the Theta method performed better than neural networks. In the same vein, the NN3 competition of 2011 showed that no machine learning method performed better than the simpler Theta method.
 
 Addressing the question of which methods are more effective are not merely academic. The implications of this question are broad as organizations increasingly rely on forecasting to make important business decisions. Therefore, finding more effective methods can serve as a competitive advantage. The authors position is that machine learning methods have not been sufficiently validated in the time-series forecasting domain. This gap makes this paper more relevant because time-series methods are relatively low cost in terms of compute for the explanatory power they provide. Are machine learning approaches adding additional complexity for little benefit?
 
@@ -38,59 +38,78 @@ The authors' goals are twofold:
 
 \section{Methods Used}
 
-Prabhat et al. (2024) designed a comparative evaluation framework examining both traditional statistical methods and machine learning approaches using univariate time series data. The study employs agricultural price series from the Delhi market, providing a real-world context for evaluating forecasting performance.
+The authors created a framework to evaluate traditional forecasting methods and machine learning methods on univariate time-series data from a real-world context. An agricultural price time-series from the Delhi market is used in the study. 
 
-The traditional statistical methods selected for comparison include Simple Exponential Smoothing (SES) and Autoregressive Integrated Moving Average (ARIMA). SES forecasts series without trends using weighted averages where more recent observations carry greater weight. ARIMA employs the Box-Jenkins methodology to understand data patterns and predict trends through autoregressive and moving average components with differencing to achieve stationarity.
+The traditional time-series forecasting methods used are  Simple Exponential Smoothing (SES) and Autoregressive Integrated Moving Average (ARIMA). SES is a forecasting method for univariate data that do not exhibit trends or seasonality. In SES, more recent observations have higher weights, i.e. more importance is given to recent data. ARIMA assumes the data has specific mathematical properties. The series must be stationary, i.e. its statistical properties don't change over time. The Box-Jenkins method is a systematic way to determine if a time-series is suitable for ARIMA.
 
-The machine learning approaches evaluated include Multi-Layer Perceptron (MLP) and Bayesian Neural Network (BNN). MLP represents a feedforward neural network capable of learning nonlinear relationships. BNN extends this by incorporating Bayesian principles, allowing for uncertainty quantification through probabilistic weight distributions.
+The authors employed the Multi-Layer Perceptron (MLP) and Bayesian Neural Network (BNN) machine learning models. While MLP and BNN are both neural networks employing hidden layers, they differ in important ways. MLP networks have a smaller number of hidden layers. A BNN can have a large number of hidden layers. The more layers a neural network has, the more compute power is needed to run them. Therefore the expense of a BNN in terms of compute could result in specialized hardware being employed, such as tensor processing units (TPU), so that the network can process data in a reasonable amount of time.
 
-A particularly innovative aspect is the investigation of preprocessing techniques to enhance ML performance. The authors applied log and Box-Cox transformations to the time series data before training ML models. These transformations stabilize variance, reduce noise, and improve data characteristics for ML algorithms. The Box-Cox transformation handles both positive and negative values, while log transformation addresses multiplicative seasonality and variance stabilization.
+A key innovation the study employs is the data preprocessing methods. Before training the machine learning models, the authors transformed the time-series data using log and Box-Cox transformations. These transformations most importantly stabilize the variance and reduce noise which benefit machine learning algorithms. The Box-Cox transformation handles negative values, while log transformation addresses seasonality and stabilizes variance.  
 
-The evaluation employs multiple accuracy measures: symmetric Mean Absolute Percentage Error (sMAPE) and Mean Absolute Scaled Error (MASE). These metrics provide complementary perspectives: sMAPE offers a symmetric, bounded percentage-based measure, while MASE scales errors relative to a naive forecasting method, enabling comparison across different time series scales. The experimental design generates 12-month forecasts for each method, comparing out-of-sample accuracy to reflect real-world forecasting scenarios.
+Two complementary measures are used to assess the accuracy of the machine learning methods- Mean Absolute Percentage Error (sMAPE) and Mean Absolute Scaled Error (MASE). Both methods are used to assess the performance of forecasting models. Both sMAPE and MAPE are expressed as a percentages making it easy to explain. 12 month forecasts are done for each method.
 
 \section{Significance of the Work}
 
-The findings challenge prevailing assumptions about ML superiority in time series forecasting. The results demonstrate that traditional statistical methods consistently outperform machine learning approaches across all accuracy measures and forecasting horizons. Specifically, ARIMA achieved 21.65\% sMAPE and 0.83 MASE, while SES achieved 19.99\% sMAPE and 0.86 MASE. In contrast, MLP achieved 24.33\% sMAPE and 0.98 MASE, and BNN achieved 10.77\% sMAPE and 0.94 MASE.
+Table~\ref{tab:performance} shows the performance of the three methods used in the study. The results show that the ARIMA method outperforms the neural networks across all accuracy measures and forecasting horizons. This challenges the assumption that machine learning methods are superior to traditional time-series forecasting methods. 
 
-However, the study reveals a crucial finding: preprocessing techniques can significantly improve ML performance. When log transformation was applied before training MLP, sMAPE improved dramatically to 5.87\%, outperforming all other methods including traditional statistical approaches. This demonstrates that the performance gap may not be inherent to the algorithms but rather to how data is prepared and presented to the models.
+The study also reveals an interesting finding in that preprocessing data can significantly reduce the error rate. When the data was log transformed prior to training MLP, sMAPE reduced to only 5.87\%. The key insight here is that it's might not be the algorithms that are the issue, rather how the data is preprocessed and given to the models.
 
-The work makes several important contributions. First, it provides empirical evidence that traditional statistical methods remain competitive, and often superior, to machine learning approaches for univariate time series forecasting. Second, the study highlights the critical importance of data preprocessing for ML techniques, suggesting that proper data preparation may be more valuable than algorithm selection alone. Third, the research demonstrates that Bayesian Neural Networks can achieve competitive performance, with BNN showing better results than standard MLP.
+\begin{table}
+    \centering
+    \begin{tabular}{ccc}
+        Method & sMAPE & MASE \\
+         ARIMA& 21.65\% & 0.83 \\
+         MLP & 24.33\%  & 0.98 \\
+         BNN & 10.77\%  & 0.94 \\
+    \end{tabular}
+    \caption{Forecasting performance comparison of ARIMA, MLP, and BNN methods}
+    \label{tab:performance}
+\end{table}
 
-The implications of these findings extend to both research and practice. For researchers, the results underscore the need to carefully evaluate whether the added complexity of ML methods is justified by improved accuracy. For practitioners, the findings suggest that traditional statistical methods may provide more reliable forecasts with less computational overhead, unless appropriate preprocessing techniques are applied to enhance ML performance.
+The paper shows three important findings:
+
+\begin{enumerate}
+    \item The study suggests that traditional time-series forecasting methods are not made obsolete by machine learning methods for univariate time-series data.
+    \item Data preprocessing is crucial to the performance of machine learning models. It may be more important that the chosen algorithm.
+    \item BNN performance is competitive, with better results than MLP.
+\end{enumerate}
+
+The implications are important and practical. The results show that the usage of ML methods, which introduce complexity, isn't justified based on the accuracy. The findings also suggest that traditional time-series forecast methods might provide more accurate forecasts with lower complexity and compute overhead. The exception is if the data is preprocessed prior to feeding it into an machine learning model.
 
 \section{Connection to Other Work}
 
-Prabhat et al. (2024) situate their work within a long history of comparative forecasting studies. The authors reference seminal competitions that have shaped understanding of forecasting method performance. The M3 Competition, published in 2000 by Makridakis, represents one of the first large-scale evaluations using over 3,000 time series, where automated artificial neural network methods performed below the most accurate statistical methods \cite{makridakis2000}.
+This work builds on a long line of comparative forecasting studies. The M3 Competition appears to be the seminal comparative forecasting study. Published in 2000, Makridakis showed that neural networks performed worse than the most accurate statistical methods, i.e. the Theta method \cite{makridakis2000}. Ahmed et al. (2010) reviewed many studies dating back to 1995 finding mixed results when comparing neural networks to traditional time-series forecast methods \cite{ahmed2010}.  Adya and Collopy (1998) reached a similar conclusion \cite{adya1998}. The NN3 competition results, published by Crone et al. (2011), validated that the Theta method retained superiority over machine learning methods \cite{crone2011}.
 
-The study builds upon the work of Ahmed et al. (2010), who reviewed numerous studies dating back to 1995 and found mixed results when comparing neural networks with statistical approaches \cite{ahmed2010}. Similarly, Adya and Collopy (1998) analyzed 48 neural network experiments and found inconsistent results \cite{adya1998}. The NN3 competition results, published by Crone et al. (2011), demonstrated that no machine learning approach surpassed the Theta method, a finding that aligns with the current study's conclusions \cite{crone2011}.
+Makridakis et al. (2018) highlighted a gap in objective assessments om machine learning methods, which is necessary for having confidence in forecasting methodology \cite{makridakis2018}. This paper addresses this gap by providing empirical evidence of relative performance of machine learning methods versus traditional time-series forecasting methods.
 
-The authors also connect their work to broader discussions about forecasting methodology. They reference Makridakis et al. (2018), who raised concerns about statistical and machine learning forecasting methods, highlighting the need for objective assessment of ML approaches \cite{makridakis2018}. The current study addresses this need by providing empirical evidence of relative performance.
+This study improves on previous comparative studies in the following ways:
+\begin{enumerate}
+    \item It considers preprocessing techniques in order to improve machine learning performance. Preprocessing techniques received less attention in earlier studies.
+    \item Multiple accuracy measures (sMAPE and MASE) are used to assess performance.
+    \item This study considers only univariate time series data.
+\end{enumerate}
 
-This study differs from previous comparative work in several ways. First, it explicitly examines preprocessing techniques in enhancing ML performance, an aspect receiving less attention in earlier comparisons. Second, the evaluation uses multiple accuracy measures (sMAPE and MASE) for comprehensive assessment. Third, the study focuses on univariate time series, allowing controlled comparison without confounding multivariate effects.
-
-The research also relates to work on forecast accuracy measurement. The authors employ sMAPE and MASE, metrics developed to address limitations in traditional error measures. Hyndman and Koehler (2006) introduced MASE as a scale-independent measure \cite{hyndman2006}, while sMAPE addresses asymmetry issues in the original MAPE metric \cite{goodwin1999}.
+Utilizing sMAPE and MASE as accuracy measures originated in earlier work, namely Hyndman and Koehler (2006) used MASE \cite{hyndman2006}. sMAPE addresses issues inherent in the MASE measure \cite{goodwin1999}.
 
 \section{Relevance to Capstone Project}
 
-This paper is highly relevant to my capstone project, which extends my previous time-series forecasting work on Uber trip durations using ARIMA models by incorporating machine learning-based prediction methods and comparing their performance. The comparative framework employed by Prabhat et al. (2024) directly aligns with my capstone's objective of evaluating both time-series forecasting and ML-based prediction models on the same dataset.
+This paper is highly relevant to my capstone project. The capstone project will extend my previous time-series forecasting work on Uber trip durations using ARIMA. The extension involves utilizing machine learning models for forecasting and comparing the performance to the ARIMA model. The framework provided in this paper aligns with my goal of evaluating both time-series forecasting and machine learning based prediction models on the same Uber trip dataset.
 
-The finding that traditional statistical methods can outperform ML approaches without proper preprocessing is particularly relevant. As I develop ML models for trip duration prediction using Uber ride-sharing data from NYC TLC, this research suggests carefully considering data preprocessing techniques. The dramatic improvement in MLP performance with log transformation (from 24.33\% to 5.87\% sMAPE) demonstrates the potential impact of appropriate data preparation. For my capstone, this suggests exploring log or Box-Cox transformations on trip duration data.
+This paper demonstrates the importance of preprocessing data prior to feeding it into a machine learning model. The paper notwithstanding, preprocessing is a must with the Uber trip dataset. The raw dataset has over 200 million trip records for the year 2024 alone. Many of these records contain invalid data or outliers which need to be removed. The paper found the log and Box-Cox transformations effective which can be explored in the capstone.
 
-The evaluation methodology provides a valuable framework for my comparative analysis. The use of multiple accuracy metrics (sMAPE and MASE) ensures comprehensive assessment, which I can adapt for evaluating trip duration predictions. The focus on out-of-sample forecasting performance aligns with my need to assess how well models generalize to future trip durations.
+I can adapt the authors' use of sMAPE and MASE as accuracy measures on trip duration prediction. The focus on out of sample forecasting performance aligns with my need to assess how well models generalize to future trip durations.
 
-The finding that ARIMA, which I have already implemented, remains competitive with ML methods is encouraging. This suggests that my baseline ARIMA model provides a strong foundation for comparison, and any ML methods I develop must demonstrate clear advantages to justify their added complexity.
+Having already implemented ARIMA in my prior work, the finding that ARIMA has performance competitive to machine learning models is encouraging. The implication is that my ARIMA model provides a strong baseline for comparison. I can investigate whether or not the added complexity of machine learning methods is justified by their performance.
 
-However, my capstone can expand upon this work in several ways. First, while this study focuses on univariate time series, trip duration prediction can benefit from incorporating multiple features such as origin-destination pairs, time of day, day of week, and weather conditions. This multivariate approach may reveal different relative performance between traditional and ML methods. Second, the study uses agricultural price data, which may have different characteristics than transportation time series. My work with ride-hailing data will test whether these findings generalize to the transportation domain. Third, I can explore more advanced ML architectures beyond MLP and BNN, such as LSTM networks or transformer models, which are specifically designed for sequential data.
-
-The study's suggestion that ML methods need improvement in accuracy, efficiency, and interpretability provides a framework for evaluating my ML models. The authors' recommendations for future ML development—including preprocessing, series grouping, overfitting prevention, and uncertainty estimation—offer specific directions for enhancing my ML approach.
+My capstone can build on this work in two ways. My capstone uses data in the transportation domain, which might reveal different characteristics compared to the agricultural data used in this paper. I can also explore models beyond MLP and BNN, such as long short-term memory (LSTM) which are suitable for time-series forecasting.
 
 \section{Conclusion}
 
-Prabhat et al. (2024) present a comprehensive empirical comparison of traditional statistical methods and machine learning techniques for time series forecasting. The study addresses a fundamental question in forecasting research by providing evidence that traditional methods consistently outperform ML approaches across multiple accuracy measures and forecasting horizons. However, the research also demonstrates that appropriate preprocessing, particularly log transformation, can dramatically improve ML performance, suggesting that the performance gap may be addressable.
+This paper presents a comparison of traditional statistical and machine learning methods for time series forecasting. The fundamental question being addressed is which method offers superior performance. The authors' find that traditional time-series methods remain superior, but preprocessing of the data can dramatically improve machine learning model performance. 
 
-The work makes significant contributions by challenging assumptions about ML superiority, highlighting the importance of data preprocessing, and providing empirical evidence to guide method selection. The findings have important implications for both researchers and practitioners, suggesting that method choice should be based on empirical evaluation rather than assumptions about complexity or modernity.
+This work challenges assumptions about machine learning superiority. It demonstrates the importance of data preprocessing. It provides evidence to guide method selection. The findings imply an important point- the method chosen should be based on an empirical evaluation and not assumptions about complexity, what is popular, or what is considered modern.
 
-For my capstone project comparing time-series forecasting and ML-based prediction methods for trip duration using Uber ride-sharing data from NYC TLC, this study provides valuable methodological insights and a comparative framework. The emphasis on empirical evaluation, the importance of preprocessing, and the competitive performance of traditional methods all inform my approach. While my work will extend beyond univariate forecasting to incorporate multiple features and explore more advanced ML architectures, the fundamental lesson that careful evaluation and appropriate preprocessing are essential applies directly to my capstone objectives.
+This paper provides a valuable framework and insights for my capstone project which predicts Uber trip duration based on time-series data. The emphasis on empirical evaluation, the importance of data preprocessing, and the comparative performance of traditional methods versus machine learning methods all inform my approach. While my work will be extended to incorporate machine learning models, the fundamental lesson that systematic evaluation of the various approaches applies directly to my capstone goals.
 
 \bibliographystyle{plain}
 \bibliography{hw3}
