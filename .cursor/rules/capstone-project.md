@@ -117,3 +117,103 @@ When writing academic documents for this capstone project, follow these style an
 - Maintain consistent terminology throughout (e.g., "time-series forecasting" vs "ML-based prediction")
 - Use consistent verb tenses within sections
 - Ensure parallel structure in lists and comparisons
+
+## Literature Review Methodology
+
+When conducting literature reviews for this capstone project, follow these guidelines based on Snyder (2019):
+
+### Types of Literature Reviews
+
+Three main approaches are available, depending on the research question:
+
+1. **Systematic Review**
+   - Best for: Narrow research questions with specific, measurable effects
+   - Characteristics: Systematic search strategy, explicit inclusion/exclusion criteria, quantitative analysis (often meta-analysis)
+   - Use when: Synthesizing evidence of specific effects or relationships
+
+2. **Semi-Systematic Review**
+   - Best for: Broad topics conceptualized differently across disciplines
+   - Characteristics: May or may not be fully systematic, qualitative or mixed-method analysis
+   - Use when: Overviewing research areas, tracking development over time, identifying themes
+
+3. **Integrative Review**
+   - Best for: Creating new theoretical frameworks or conceptual models
+   - Characteristics: Usually not systematic, requires advanced conceptual thinking
+   - Use when: Combining perspectives to develop new theories or frameworks
+
+### Four-Phase Review Process
+
+**Phase 1: Design**
+- Determine if the review is needed and what contribution it will make
+- Define specific research question(s) and select appropriate methodology
+- Develop search strategy: search terms, databases, inclusion/exclusion criteria
+- Consider the target audience and potential impact
+
+**Phase 2: Conduct**
+- Pilot test the review process on a smaller sample
+- Use multiple reviewers for quality assurance
+- Select articles systematically (read abstracts first, then full texts)
+- Document inclusion/exclusion process transparently
+- Scan references in selected articles for additional relevant work (if appropriate for methodology)
+
+**Phase 3: Analysis**
+- Abstract appropriate information from articles (descriptive, effects/findings, or conceptualizations)
+- Choose analysis method appropriate to research question
+- Train reviewers to ensure consistency in data abstraction
+- Document analysis process clearly
+
+**Phase 4: Writing**
+- Clearly communicate motivation and need for the review
+- Transparently describe methodology and process
+- Present results clearly and explain all findings
+- Articulate contribution to the field (beyond mere description)
+
+### Quality Criteria for Literature Reviews
+
+A quality literature review must demonstrate:
+
+1. **Depth and Rigor**: Appropriate strategy for selecting articles and capturing insights
+2. **Replicability**: Method described so others can replicate the study
+3. **Usefulness**: Valuable for scholars and practitioners
+4. **Transparency**: Clear documentation of all decisions and processes
+
+### Common Mistakes to Avoid
+
+1. **Insufficient methodological detail**: Failing to describe search strategy, selection process, and analysis methods
+2. **Overly limited search**: Restricting to too few journals, narrow time spans, or excluding relevant fields
+3. **Poor presentation of results**: Including tables/figures without explanation or context
+4. **Lack of meaningful contribution**: Merely summarizing existing research without providing new insights, frameworks, or evidence
+
+### Application to Capstone Project
+
+For this capstone project's literature reviews:
+
+- **Purpose**: Synthesize existing research on trip duration prediction, time-series forecasting, and ML-based prediction methods
+- **Approach**: Likely semi-systematic or integrative, given the interdisciplinary nature of the topic
+- **Focus Areas**: 
+  - Time-series forecasting methods for transportation data
+  - Machine learning approaches for trip duration prediction
+  - Comparative studies of forecasting vs ML methods
+  - Temporal patterns in ride-hailing data
+- **Contribution Goal**: Identify gaps in existing research and establish foundation for comparing time-series and ML approaches
+- **Key Requirement**: Go beyond description to provide insights that inform the comparative analysis methodology
+
+## Useful Commands and Tools
+
+### LaTeX Word Count
+
+To count words in a LaTeX file (excluding LaTeX commands, citations, and formatting), use this PowerShell command:
+
+```powershell
+$content = Get-Content 'filename.tex' -Raw; $text = $content -replace '\\[a-zA-Z]+\{[^\}]*\}|\$[^\$]*\$|\\cite\{[^\}]*\}|\\section\{[^\}]*\}|\\subsection\{[^\}]*\}|\\begin\{[^\}]*\}|\\end\{[^\}]*\}|\\item|\\textbf|\\cite|\\documentclass|\\usepackage|\\title|\\author|\\date|\\maketitle|\\tableofcontents|\\bibliographystyle|\\bibliography|\\begin|\\end', ''; ($text -split '\s+' | Where-Object { $_ -match '^[a-zA-Z]' }).Count
+```
+
+**Usage**: Replace `'filename.tex'` with the actual LaTeX file path. This command:
+- Removes LaTeX commands, citations, and formatting
+- Counts only actual words (starting with letters)
+- Provides an accurate word count for assignment requirements
+
+**Example**: 
+```powershell
+cd "C:\src\my\uwf-idc6940-capstone\docs\hw3"; $content = Get-Content 'hw3.tex' -Raw; $text = $content -replace '\\[a-zA-Z]+\{[^\}]*\}|\$[^\$]*\$|\\cite\{[^\}]*\}|\\section\{[^\}]*\}|\\subsection\{[^\}]*\}|\\begin\{[^\}]*\}|\\end\{[^\}]*\}|\\item|\\textbf|\\cite|\\documentclass|\\usepackage|\\title|\\author|\\date|\\maketitle|\\tableofcontents|\\bibliographystyle|\\bibliography|\\begin|\\end', ''; ($text -split '\s+' | Where-Object { $_ -match '^[a-zA-Z]' }).Count
+```
