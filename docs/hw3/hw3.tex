@@ -29,12 +29,7 @@ There is a gap in the research, leading the authors to attempt to provide an ans
 
 Addressing the question of which methods are more effective are not merely academic. The implications of this question are broad as organizations increasingly rely on forecasting to make important business decisions. Therefore, finding more effective methods can serve as a competitive advantage. The authors position is that machine learning methods have not been sufficiently validated in the time-series forecasting domain. This gap makes this paper more relevant because time-series methods are relatively low cost in terms of compute for the explanatory power they provide. Are machine learning approaches adding additional complexity for little benefit?
 
-The authors' goals are twofold: 
-
-\begin{enumerate}
-    \item Systematically determine if machine learning methods outperform traditional time-series methods.
-    \item Catalog the machine learning approaches that can used to improve forecasting accuracy.
-\end{enumerate}
+The authors' have two goals. The first is to systematically determine if machine learning methods outperform traditional time-series methods. Second, to catalog the machine learning approaches that can used to improve forecasting accuracy.
 
 \section{Methods Used}
 
@@ -50,44 +45,17 @@ Two complementary measures are used to assess the accuracy of the machine learni
 
 \section{Significance of the Work}
 
-Table~\ref{tab:performance} shows the performance of the three methods used in the study. The results show that the ARIMA method outperforms neural networks. This challenges the assumption that machine learning methods are superior to traditional time-series forecasting methods. 
+The results show that the ARIMA method outperforms neural networks. In other words, ARIMA has lower sMAPE and MASE values. This challenges the assumption that machine learning methods are superior to traditional time-series forecasting methods. 
 
-The study also reveals an interesting finding in that preprocessing data can significantly reduce the error rate. When the data was log transformed prior to training MLP, sMAPE was reduced to only 5.87\%. The key insight here is that it's might not be the algorithms that are the issue, rather how the data is preprocessed and given to the models.
-
-\begin{table}
-    \centering
-    \begin{tabular}{ccc}
-        Method & sMAPE & MASE \\
-         ARIMA& 21.65\% & 0.83 \\
-         MLP & 24.33\%  & 0.98 \\
-         BNN & 10.77\%  & 0.94 \\
-    \end{tabular}
-    \caption{Forecasting performance comparison of ARIMA, MLP, and BNN methods}
-    \label{tab:performance}
-\end{table}
-
-The paper shows three important findings:
-
-\begin{enumerate}
-    \item The study suggests that traditional time-series forecasting methods are not made obsolete by machine learning methods for univariate time-series data.
-    \item Data preprocessing improves machine learning model accuracy.
-    \item BNN performance is competitive, with better results than MLP.
-\end{enumerate}
+The study also reveals an interesting finding in that preprocessing data can significantly reduce the error rate. When the data was log transformed prior to training MLP, sMAPE was reduced to only 5.87\%. The key insight here is that it's might not be the algorithms that are the issue, rather how the data is preprocessed and given to the models. The study suggests that traditional time-series forecasting methods are not made obsolete by machine learning methods for univariate time-series data, that data preprocessing improves machine learning model accuracy, and BNN performance is competitive, with better results than MLP.
 
 The implications are important and practical. The findings imply that usage of ML methods, which introduce complexity, isn't always justified based on the accuracy of the models. The findings also suggest that traditional time-series forecast methods might provide more accurate forecasts with lower complexity and compute overhead. The exception being is if the data is preprocessed prior to feeding it into an machine learning model.
 
 \section{Connection to Other Work}
 
-This work builds on a long line of comparative forecasting studies. The M3 Competition appears to be the seminal comparative forecasting study. Published in 2000, Makridakis showed that neural networks performed worse than the most accurate statistical methods, i.e. the  method \cite{makridakis2000}. Ahmed et al. (2010) reviewed many studies dating back to 1995 finding mixed results when comparing neural networks to traditional time-series forecasting methods \cite{ahmed2010}.  Adya and Collopy (1998) reached a similar conclusion \cite{adya1998}. The NN3 competition results, published by Crone et al. (2011), validated that the Theta method (a simple, traditional time-series forecasting method) is superior to machine learning methods \cite{crone2011}. This paper also addresses a gap highlighted in Makridakis et al. (2018) by providing empirical evidence of relative performance of machine learning methods versus traditional time-series forecasting methods \cite{makridakis2018}.
+This work builds on a long line of comparative forecasting studies. The M3 Competition appears to be the seminal comparative forecasting study. Published in 2000, Makridakis showed that neural networks performed worse than the most accurate statistical methods, i.e. the  method \cite{makridakis2000}. Ahmed et al. (2010) reviewed many studies dating back to 1995 finding mixed results when comparing neural networks to traditional time-series forecasting methods \cite{ahmed2010}.  Adya and Collopy (1998) reached a similar conclusion \cite{adya1998}. The NN3 competition results, published by Crone et al. (2011), validated that the Theta method (a simple, traditional time-series forecasting method) is superior to machine learning methods \cite{crone2011}. This paper also addresses a gap highlighted in Makridakis et al. (2018) on the lack of empirical data about the performance of machine learning methods versus traditional time-series methods. \cite{makridakis2018}.
 
-This study improves on previous comparative studies in the following ways:
-\begin{enumerate}
-    \item It considers preprocessing techniques in order to improve machine learning performance.
-    \item Multiple accuracy measures (sMAPE and MASE) are used to assess performance.
-    \item This study considers only univariate time series data.
-\end{enumerate}
-
-Utilizing sMAPE and MASE as accuracy measures originated in earlier work, namely Hyndman and Koehler (2006) used MASE \cite{hyndman2006}. sMAPE addresses issues inherent in the MASE measure \cite{goodwin1999}.
+This study improves on previous comparative studies. It considers preprocessing techniques in order to improve machine learning performance. Multiple accuracy measures (sMAPE and MASE) are used to assess performance. This study considers only univariate time series data. Using sMAPE and MASE as accuracy measures originated in earlier work, namely Hyndman and Koehler (2006) \cite{goodwin1999}.
 
 \section{Relevance to Capstone Project}
 
