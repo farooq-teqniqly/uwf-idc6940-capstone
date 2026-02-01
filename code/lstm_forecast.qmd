@@ -1,0 +1,274 @@
+---
+title: "LSTM Forecast: Daily Average Uber Trip Duration"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Attribution
+
+- **Data and structure:** Daily average trip duration series and overall workflow follow the STA6856 final project ([finalproject.qmd](https://github.com/farooq-teqniqly/uwf-sta6856), `finalproject/code/finalproject.qmd`). Data source: NYC TLC High-Volume FHV data; aggregated to daily averages as in that project.
+- **Plot style:** ggplot2 layout, `theme_minimal()`, and `scale_x_date()` usage are aligned with [finalproject.qmd](https://github.com/farooq-teqniqly/uwf-sta6856) for consistency with the ARIMA report.
+- **LSTM implementation:** LSTM design (sequence construction, scaling, recursive forecast) follows common Keras time-series patterns (see [Keras timeseries documentation](https://keras.io/examples/timeseries/)); R interface via the [keras](https://keras.rstudio.com/) package.
+- **Evaluation metrics:** sMAPE and MASE definitions follow forecasting comparison literature (e.g. Makridakis et al.; Prabhat et al. as reviewed in the capstone hw3 literature review).
+
+## Load the data
+
+```{r}
+# Path: same daily series as STA6856 final project (finalproject.csv).
+# Try repo data/, then code/data/, then docs/hw4-5/data/.
+data_path <- file.path(getwd(), "..", "data", "finalproject.csv")
+if (!file.exists(data_path)) {
+  data_path <- file.path(getwd(), "data", "finalproject.csv")
+}
+if (!file.exists(data_path)) {
+  data_path <- file.path(getwd(), "..", "docs", "hw4-5", "data", "finalproject.csv")
+}
+if (!file.exists(data_path)) {
+  stop("finalproject.csv not found. Place it in code/data/, repo data/, or docs/hw4-5/data/.")
+}
+
+data <- read.csv(data_path)
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
+rownames(data) <- NULL
+```
+
+## Preview data
+
+```{r}
+dim(data)
+head(data, 10)
+summary(data$avg_duration_min)
+sum(is.na(data))
+```
+
+## Preprocessing
+
+### Train / validation / test split (chronological)
+
+```{r}
+HORIZON <- 14   # 14-day forecast (same as ARIMA)
+VAL_DAYS <- 30
+n <- nrow(data)
+test_end <- n
+test_start <- test_end - HORIZON
+val_end <- test_start
+val_start <- val_end - VAL_DAYS
+train_end <- val_start
+
+values <- matrix(data$avg_duration_min, ncol = 1)
+train_values <- values[1:train_end, , drop = FALSE]
+val_values <- values[val_start:(val_end - 1), , drop = FALSE]
+test_values <- values[test_start:(test_end - 1), , drop = FALSE]
+test_dates <- data$pickup_date[test_start:(test_end - 1)]
+
+cat("Train: 1:", train_end, ", Val: ", val_start, ":", val_end - 1, ", Test: ", test_start, ":", test_end - 1, "\n")
+cat("Train size:", nrow(train_values), ", Val:", nrow(val_values), ", Test:", nrow(test_values), "\n")
+```
+
+### Scaling
+
+```{r}
+min_val <- min(train_values)
+max_val <- max(train_values)
+scale_fun <- function(x) (x - min_val) / (max_val - min_val)
+inv_scale_fun <- function(z) z * (max_val - min_val) + min_val
+
+train_scaled <- scale_fun(train_values)
+val_scaled <- scale_fun(val_values)
+test_scaled <- scale_fun(test_values)
+```
+
+### Sequence construction (sliding window)
+
+```{r}
+SEQ_LEN <- 21
+
+create_sequences <- function(scaled_data, seq_len) {
+  X <- array(NA, dim = c(nrow(scaled_data) - seq_len, seq_len, 1))
+  y <- numeric(nrow(scaled_data) - seq_len)
+  for (i in seq_len(nrow(scaled_data) - seq_len)) {
+    ii <- i + seq_len - 1
+    X[i, , 1] <- scaled_data[i:ii, 1]
+    y[i] <- scaled_data[ii + 1, 1]
+  }
+  list(X = X, y = y)
+}
+
+train_val_scaled <- rbind(train_scaled, val_scaled)
+seqs <- create_sequences(train_val_scaled, SEQ_LEN)
+X_train <- seqs$X
+y_train <- seqs$y
+cat("X_train dim:", dim(X_train), ", y_train length:", length(y_train), "\n")
+```
+
+## Model (LSTM)
+
+```{r}
+library(keras)
+
+model <- keras_model_sequential() %>%
+  layer_lstm(units = 32, input_shape = c(SEQ_LEN, 1), return_sequences = FALSE) %>%
+  layer_dropout(rate = 0.2) %>%
+  layer_dense(units = 1)
+
+model %>% compile(
+  optimizer = optimizer_adam(),
+  loss = "mse"
+)
+summary(model)
+```
+
+## Training
+
+```{r}
+# Use 20% of training sequences as validation for early stopping
+val_idx <- sample(length(y_train), size = round(0.2 * length(y_train)))
+x_val <- X_train[val_idx, , , drop = FALSE]
+y_val <- y_train[val_idx]
+x_fit <- X_train[-val_idx, , , drop = FALSE]
+y_fit <- y_train[-val_idx]
+
+history <- model %>% fit(
+  x_fit, y_fit,
+  epochs = 100,
+  batch_size = 16,
+  validation_data = list(x_val, y_val),
+  callbacks = list(
+    callback_early_stopping(monitor = "val_loss", patience = 15, restore_best_weights = TRUE)
+  ),
+  verbose = 1
+)
+```
+
+## Training and validation loss (ggplot2)
+
+```{r}
+library(ggplot2)
+library(tidyr)
+
+hist_df <- as.data.frame(history$metrics)
+hist_df$epoch <- seq_len(nrow(hist_df))
+hist_long <- pivot_longer(hist_df, cols = c(loss, val_loss), names_to = "series", values_to = "loss")
+hist_long$series <- factor(hist_long$series, levels = c("loss", "val_loss"),
+                           labels = c("Train loss", "Val loss"))
+
+ggplot(hist_long, aes(x = epoch, y = loss, color = series)) +
+  geom_line(linewidth = 0.8) +
+  labs(
+    title = "LSTM training and validation loss",
+    x = "Epoch",
+    y = "Loss (MSE)",
+    color = NULL
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## 14-day forecast
+
+```{r}
+last_seq <- values[(test_start - SEQ_LEN):(test_start - 1), , drop = FALSE]
+last_seq_scaled <- scale_fun(last_seq)
+forecast_scaled <- numeric(HORIZON)
+current <- last_seq_scaled
+
+for (h in seq_len(HORIZON)) {
+  pred <- predict(model, array(current, dim = c(1, SEQ_LEN, 1)), verbose = 0)
+  forecast_scaled[h] <- pred[1, 1]
+  current <- rbind(current[-1, , drop = FALSE], pred[1, 1])
+}
+
+forecast <- inv_scale_fun(forecast_scaled)
+forecast_df <- data.frame(
+  date = test_dates,
+  actual = as.numeric(test_values),
+  forecast = forecast
+)
+forecast_df
+```
+
+## Plot: actual vs LSTM forecast (14 days)
+
+```{r}
+library(scales)
+
+ggplot(forecast_df, aes(x = date)) +
+  geom_line(aes(y = actual, color = "Actual"), linewidth = 0.8) +
+  geom_line(aes(y = forecast, color = "LSTM forecast"), linewidth = 0.8) +
+  geom_point(aes(y = actual, color = "Actual"), size = 2) +
+  geom_point(aes(y = forecast, color = "LSTM forecast"), size = 2, shape = 17) +
+  scale_color_manual(
+    values = c("Actual" = "#332288", "LSTM forecast" = "#EE7733"),
+    name = NULL
+  ) +
+  labs(
+    title = "14-day forecast: actual vs LSTM",
+    x = "Date",
+    y = "Avg trip duration (minutes)"
+  ) +
+  scale_x_date(date_breaks = "2 days", date_labels = "%b %d") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+
+## Evaluation: sMAPE and MASE
+
+```{r}
+smape <- function(actual, forecast) {
+  num <- abs(actual - forecast)
+  denom <- (abs(actual) + abs(forecast)) / 2
+  denom[denom == 0] <- 1e-8
+  mean(num / denom) * 100
+}
+
+mase <- function(actual, forecast, train_vals) {
+  mae_f <- mean(abs(actual - forecast))
+  naive_err <- abs(diff(train_vals))
+  mae_naive <- mean(naive_err)
+  if (mae_naive == 0) return(NA)
+  mae_f / mae_naive
+}
+
+lstm_smape <- smape(forecast_df$actual, forecast_df$forecast)
+lstm_mase <- mase(forecast_df$actual, forecast_df$forecast, as.numeric(train_values))
+
+cat("LSTM sMAPE (%):", round(lstm_smape, 4), "\n")
+cat("LSTM MASE:", round(lstm_mase, 4), "\n")
+```
+
+## Time series plot (full year, same style as finalproject.qmd)
+
+```{r}
+ts_plot_df <- data.frame(
+  Date = data$pickup_date,
+  Duration = data$avg_duration_min
+)
+
+ggplot(ts_plot_df, aes(x = Date, y = Duration)) +
+  geom_line() +
+  labs(
+    title = "Daily Average Uber Trip Duration (2024)",
+    x = "Month",
+    y = "Average Duration (minutes)"
+  ) +
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b"
+  ) +
+  theme_minimal()
+```
+
+## Save forecast for comparison with ARIMA
+
+```{r}
+out_dir <- file.path(getwd(), "..", "docs", "hw4-5", "data")
+if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
+out_path <- file.path(out_dir, "lstm_forecast_14day.csv")
+write.csv(forecast_df, out_path, row.names = FALSE)
+cat("Saved:", out_path, "\n")
+```

@@ -1,0 +1,122 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue]{hyperref}
+
+\graphicspath{{./images/}}
+
+\title{Week 4--5 Progress Report: Methods, Data, and Implementation}
+\author{Farooq Mahmud}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+%=============================================================================
+\section{Project Goal and Research Question}
+%=============================================================================
+
+\subsection{Goal}
+% TODO: State the capstone project goal (trip duration forecasting for NYC Uber daily averages; compare time-series vs LSTM).
+\ldots
+
+\subsection{Research Question}
+% TODO: State the research question (e.g., How do ARIMA and LSTM compare for 14-day forecasting of daily average trip duration on sMAPE and MASE?).
+\ldots
+
+%=============================================================================
+\section{Expanded Methods}
+%=============================================================================
+
+\subsection{Problem Definition}
+% TODO: What you are predicting/estimating: daily average Uber trip duration (minutes) in NYC. Inputs: univariate time series (366 days). Outputs: 14-day point forecast; for comparison, sMAPE and MASE.
+\ldots
+
+\subsection{Data Description}
+% TODO: Data source (NYC TLC FHV); key variables (pickup\_date, avg\_duration\_min); expected sample size (366 days). Preprocessing: PySpark aggregation to daily averages (include short excerpt in narrative; do not cite prior report).
+\ldots
+
+\subsection{Preprocessing Plan}
+% TODO: Cleaning, missing data, scaling, train/validation/test split (chronological; last 14 days test), sequence construction for LSTM (sliding window).
+\ldots
+
+\subsection{Modeling Plan}
+% TODO: (1) ARIMA: include relevant excerpts (ARIMA(3,1,2), 14-day forecast, AIC/BIC, Ljung--Box) in narrative; do not cite prior report. (2) LSTM: R/keras, one LSTM layer, sequence length, recursive 1-step 14-day forecast. (3) Comparison: same horizon, same metrics (sMAPE, MASE).
+\ldots
+
+\subsection{Evaluation Plan}
+% TODO: Metrics: sMAPE and MASE over the 14-day forecast. MASE scaled by naive one-step MAE on training data. Same test period for both methods. Table and figure comparing ARIMA vs LSTM.
+\ldots
+
+%=============================================================================
+\section{Dataset and Access}
+%=============================================================================
+
+\subsection{Source}
+% TODO: NYC TLC High-Volume FHV data \cite{nyctlc2024}. Analysis-ready series: finalproject.csv (daily average trip duration for 2024). Describe data production (e.g.\ PySpark aggregation) in narrative using a short excerpt; do not cite prior report.
+\ldots
+
+\subsection{Access and Loading}
+% TODO: Dataset citation/link; confirm accessible. Proof of load: dimensions (366 rows $\times$ 2 columns), variable names and types, missing values (if any). Code: lstm\_forecast.qmd or load script.
+\ldots
+
+%=============================================================================
+\section{Implementation and Experiments}
+%=============================================================================
+
+\subsection{What Was Implemented}
+% TODO: (1) ARIMA: reproduce 14-day forecast using existing R/Quarto code; include excerpts of method and results in this report (do not cite prior report). (2) LSTM: run lstm\_forecast.qmd (R/keras) for 14-day forecast and sMAPE/MASE. (3) Comparison: script to combine ARIMA and LSTM forecasts and compute metrics.
+\ldots
+
+\subsection{What Was Tested}
+% TODO: Dataset (finalproject.csv), subset (full 2024; test = last 14 days for LSTM comparison), variables (avg\_duration\_min).
+\ldots
+
+\subsection{What Worked and What Did Not}
+% TODO: Bugs, limitations, unexpected issues (e.g., small sample size for LSTM, overfitting, hyperparameters).
+\ldots
+
+\subsection{Preliminary Outputs}
+% TODO: ARIMA 14-day forecast table and plot (included as excerpts in this report). LSTM forecast figure and training loss (from lstm\_forecast.qmd). Comparison table (ARIMA vs LSTM sMAPE, MASE) and plot.
+\ldots
+
+%=============================================================================
+\section{Results (Preliminary)}
+%=============================================================================
+
+\subsection{ARIMA}
+% TODO: 14-day forecast summary; include excerpt(s) of forecast table and figure in the narrative (do not cite prior report).
+\ldots
+
+\subsection{LSTM}
+% TODO: 14-day forecast; training/validation loss curve; sMAPE and MASE. Figures from lstm\_forecast.qmd.
+\ldots
+
+\subsection{Comparison (ARIMA vs LSTM)}
+% TODO: Table: Model | sMAPE (\%) | MASE. Figure: actual vs ARIMA vs LSTM over the 14 days. Short interpretation: which method performed better and why.
+\ldots
+
+%=============================================================================
+\section{Issues and Limitations}
+%=============================================================================
+% TODO: Small sample size (366 points) for LSTM; univariate models; any bugs or data issues encountered. Note limitations in the narrative; do not cite prior report.
+\ldots
+
+%=============================================================================
+\section{Next Steps}
+%=============================================================================
+% TODO: Complete comparison script; add ARIMA 14-day forecast to comparison if not yet done; extend with more years of data if available; refine LSTM hyperparameters; finalize report and submit PDF.
+\ldots
+
+%=============================================================================
+\bibliographystyle{plain}
+\bibliography{week4_5_report}
+%=============================================================================
+\end{document}
