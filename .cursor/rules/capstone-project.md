@@ -2,14 +2,14 @@
 
 ## Project Overview
 
-This capstone project extends previous time-series forecasting work on Uber trip durations by incorporating machine learning-based prediction methods and comparing their performance.
+This capstone project develops and evaluates forecasting methods for Uber trip durations: it compares an ARIMA approach with an LSTM model on the same data and horizon (ARIMA content is included in the narrative via excerpts from prior work; the capstone does not formally extend the unpublished STA6856 report).
 
 ## Project Scope and Goals
 
 ### Primary Focus
 
 - **Trip Duration Forecasting and Prediction**: The capstone focuses on developing and evaluating both time-series forecasting models and ML-based prediction models for Uber trip durations in New York City
-- **Comparative Analysis**: Compare the performance of time-series forecasting methods (extending previous ARIMA work) with ML-based prediction methods
+- **Comparative Analysis**: Compare the performance of time-series forecasting (ARIMA) with ML-based prediction (LSTM) on the same data and metrics
 
 ### Previous Work
 
@@ -19,7 +19,7 @@ This capstone project extends previous time-series forecasting work on Uber trip
 
 ### Current Capstone Scope
 
-1. **Time-Series Forecasting**: Extend previous ARIMA work for trip duration forecasting
+1. **Time-Series Forecasting**: Include ARIMA methodology (via excerpts in the narrative) and compare with LSTM for trip duration forecasting
 2. **ML-Based Prediction**: Develop machine learning models for trip duration prediction
 3. **Performance Comparison**: Compare accuracy and performance of time-series vs ML methods
 4. **Data Source**: Use Uber ride-sharing data from NYC TLC (not yellow taxi data)
@@ -40,7 +40,7 @@ This capstone project extends previous time-series forecasting work on Uber trip
 
 ### Time-Series Approach
 
-- Extends previous ARIMA modeling work
+- Includes ARIMA methodology (via excerpts in the narrative; same data as prior work; do not cite STA6856)
 - Focuses on temporal patterns and historical trends
 - Uses daily aggregated trip duration data
 
@@ -74,7 +74,11 @@ This capstone project extends previous time-series forecasting work on Uber trip
 - When discussing this project, remember that charging optimization is NOT part of the capstone scope
 - The focus is purely on trip duration forecasting/prediction and comparing time-series vs ML methods
 - Data source is Uber ride-sharing data from NYC TLC, not yellow taxi data
-- The project builds on previous ARIMA work but extends it with ML methods for comparison
+- The project uses the same data as prior ARIMA work, includes excerpts of that methodology in the narrative (no citation of the unpublished report), and adds LSTM and a formal comparison
+
+### Clarification: relationship to STA6856 work
+
+- **This capstone does not technically extend the work in STA6856.** The STA6856 final project report is not officially published. The capstone uses the same data (daily average trip duration for 2024) and **includes relevant excerpts** from that work (problem definition, data description, ARIMA methodology, preprocessing, forecast table/figure) in the narrative—but does **not cite or explicitly mention** the STA6856 report in the body or bibliography. Present ARIMA content in the capstone as your own methods/results. The capstone **adds** an LSTM model and a formal comparison (ARIMA vs LSTM on sMAPE and MASE). Do not describe the capstone as "extending" prior time-series work or STA6856; use "compares", "adds", or "develops and evaluates" instead.
 
 ## Writing Style and Grammar Preferences
 
@@ -82,10 +86,10 @@ When writing academic documents for this capstone project, follow these style an
 
 ### Academic Tone and Terminology
 
-- Use "this study" instead of "the paper" or "the work" for more formal academic tone
-- Use "this study" consistently throughout when referring to the work being reviewed
+- Use **"this capstone"** or **"the capstone"** (not "this study") when referring to the capstone project itself (e.g., "This capstone compares ARIMA and LSTM", "The capstone predicts daily average trip duration")
+- Use "this study" when referring to *other* work being reviewed in the literature (e.g., "This study addresses", "the study by Prabhat et al.")
 - Use past tense when describing what authors did: "The authors used" not "The authors use"
-- Use "Although" instead of "While" in formal contexts (e.g., "Although this study focuses" not "While the paper focuses")
+- Use "Although" instead of "While" in formal contexts (e.g., "Although this capstone focuses" not "While the paper focuses")
 
 ### Structure and Clarity
 
@@ -107,7 +111,7 @@ When writing academic documents for this capstone project, follow these style an
 
 ### Sentence Structure
 
-- Prefer active voice: "This study addresses" not "The work addresses"
+- Prefer active voice: "This capstone addresses" (for the capstone); "This study addresses" (for other work being reviewed)
 - Use more formal phrasing: "have not been adequately addressed" not "has not adequately addressed"
 - Separate related ideas into distinct sentences rather than long compound sentences
 - Use enumerated lists for clarity when presenting multiple points or contributions

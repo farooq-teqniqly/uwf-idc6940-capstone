@@ -24,44 +24,53 @@
 %=============================================================================
 
 \subsection{Goal}
-% TODO: State the capstone project goal (trip duration forecasting for NYC Uber daily averages; compare time-series vs LSTM).
-\ldots
+
+The goal of this capstone project is to develop and evaluate forecasting methods for daily average Uber trip duration in New York City. This capstone compares an autoregressive integrated moving average (ARIMA) approach with a long short-term memory (LSTM) model on the same dataset \cite{nyctlc2024} and 14-day forecast horizon, using symmetric mean absolute percentage error (sMAPE) and mean absolute scaled error (MASE) \cite{hyndman2006,prabhat2024}. The ARIMA methodology is presented in the narrative (via relevant excerpts); the capstone adds the LSTM implementation and the formal comparison. The aim is to produce a 14-day forecast from each method and to assess both using sMAPE and MASE.
 
 \subsection{Research Question}
-% TODO: State the research question (e.g., How do ARIMA and LSTM compare for 14-day forecasting of daily average trip duration on sMAPE and MASE?).
-\ldots
+
+How do ARIMA and LSTM compare for 14-day forecasting of daily average Uber trip duration in New York City when evaluated on sMAPE and MASE \cite{hyndman2006,prabhat2024}?
 
 %=============================================================================
 \section{Expanded Methods}
 %=============================================================================
 
 \subsection{Problem Definition}
-% TODO: What you are predicting/estimating: daily average Uber trip duration (minutes) in NYC. Inputs: univariate time series (366 days). Outputs: 14-day point forecast; for comparison, sMAPE and MASE.
-\ldots
+
+This capstone predicts daily average Uber trip duration (in minutes) in New York City. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 daily observations (one per day in 2024). The outputs are (1) a 14-day point forecast of average trip duration from each method (ARIMA and LSTM), and (2) for comparison, the same horizon evaluated with sMAPE and MASE \cite{hyndman2006,prabhat2024} over a common test period.
 
 \subsection{Data Description}
-% TODO: Data source (NYC TLC FHV); key variables (pickup\_date, avg\_duration\_min); expected sample size (366 days). Preprocessing: PySpark aggregation to daily averages (include short excerpt in narrative; do not cite prior report).
-\ldots
+
+The data are daily average Uber trip duration (minutes) for New York City in 2024, derived from the New York City Taxi and Limousine Commission (TLC) High-Volume FHV trip record data \cite{nyctlc2024}. Key variables are \texttt{pickup\_date} and \texttt{avg\_duration\_min}; the analysis-ready series has 366 daily observations. Preprocessing (PySpark aggregation to daily averages) is described in the narrative via relevant excerpts; the prior report is not cited.
 
 \subsection{Preprocessing Plan}
-% TODO: Cleaning, missing data, scaling, train/validation/test split (chronological; last 14 days test), sequence construction for LSTM (sliding window).
-\ldots
+
+The following preprocessing is common to both modeling methods and produces the single daily time series (\texttt{pickup\_date}, \texttt{avg\_duration\_min}) that both ARIMA and LSTM use. It was applied to the NYC TLC High-Volume FHV trip record data \cite{nyctlc2024}.
+
+\begin{enumerate}
+\item \textbf{Filter to Uber trips.} Retain only records with \texttt{hvfhs\_license\_num} equal to \texttt{HV0003} (Uber).
+\item \textbf{Derived columns.} Compute trip duration in minutes (\texttt{trip\_time}/60) and average speed in mph (\texttt{trip\_miles}/(\texttt{trip\_time}/3600)).
+\item \textbf{Basic cleaning.} Remove trips with zero or negative duration, distance, or speed. Remove obvious outliers: trip duration outside 1--120 minutes, trip distance outside 0.1--100 miles, average speed outside 1--80 mph.
+\item \textbf{IQR-based outlier removal.} For \texttt{trip\_duration\_min}, \texttt{trip\_miles}, and \texttt{avg\_speed\_mph}, compute the interquartile range (IQR) and drop trips above $Q_3 + 1.5 \times \text{IQR}$ for each variable.
+\item \textbf{Aggregation.} Group by \texttt{pickup\_date} (date of \texttt{pickup\_datetime}), compute the mean trip duration per day (\texttt{avg\_duration\_min}), order by date, and round the average. The result is one row per day (366 days for 2024).
+\item \textbf{Loading for modeling.} Both methods use the same CSV: load, parse \texttt{pickup\_date}, and ensure chronological order. No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps; ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
+\end{enumerate}
 
 \subsection{Modeling Plan}
-% TODO: (1) ARIMA: include relevant excerpts (ARIMA(3,1,2), 14-day forecast, AIC/BIC, Ljung--Box) in narrative; do not cite prior report. (2) LSTM: R/keras, one LSTM layer, sequence length, recursive 1-step 14-day forecast. (3) Comparison: same horizon, same metrics (sMAPE, MASE).
-\ldots
+
+(1)~ARIMA: The narrative includes relevant excerpts (ARIMA(3,1,2), 14-day forecast, AIC/BIC, Ljung--Box); the prior report is not cited. (2)~LSTM: Implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}: one LSTM layer, sliding-window sequences, recursive 1-step 14-day forecast. (3)~Comparison: Same horizon (14 days) and same metrics (sMAPE, MASE) \cite{hyndman2006,prabhat2024} for both methods.
 
 \subsection{Evaluation Plan}
-% TODO: Metrics: sMAPE and MASE over the 14-day forecast. MASE scaled by naive one-step MAE on training data. Same test period for both methods. Table and figure comparing ARIMA vs LSTM.
-\ldots
+
+Metrics are sMAPE and MASE over the 14-day forecast \cite{hyndman2006,prabhat2024}. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. The same test period is used for both methods. Results are presented in a table (ARIMA vs LSTM: sMAPE, MASE) and a figure (actual vs both forecasts over the 14 days).
 
 %=============================================================================
 \section{Dataset and Access}
 %=============================================================================
 
 \subsection{Source}
-% TODO: NYC TLC High-Volume FHV data \cite{nyctlc2024}. Analysis-ready series: finalproject.csv (daily average trip duration for 2024). Describe data production (e.g.\ PySpark aggregation) in narrative using a short excerpt; do not cite prior report.
-\ldots
+
+The primary data source is the New York City TLC High-Volume FHV trip record data \cite{nyctlc2024}. The analysis-ready series used in this capstone is \texttt{finalproject.csv}: daily average trip duration (minutes) for 2024, produced by aggregating trip-level records (e.g., via PySpark) to one row per day. Data production is described in the narrative using relevant excerpts; the prior report is not cited.
 
 \subsection{Access and Loading}
 % TODO: Dataset citation/link; confirm accessible. Proof of load: dimensions (366 rows $\times$ 2 columns), variable names and types, missing values (if any). Code: lstm\_forecast.qmd or load script.

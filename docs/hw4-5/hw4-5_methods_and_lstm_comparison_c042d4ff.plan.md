@@ -12,7 +12,7 @@ The deliverable is a single PDF report per [week4_5.md](c:\src\my\uwf-idc6940-ca
 
 Your Methods section will have **two parts**: (1) methods from the prior ARIMA work (STA6856 final project), and (2) a new LSTM forecasting method, followed by a **comparison** of the two.
 
-**Prior ARIMA work (excerpts, no citation):** The STA6856 final project report is not officially published. The capstone report will **include relevant excerpts** from that work (problem definition, data description, ARIMA methodology, preprocessing, forecast table/figure) in the Methods, Dataset, Implementation, and Results sections—but will **not cite or explicitly mention** the STA6856 report in the body or bibliography. Present the ARIMA content in the capstone narrative as your own methods/results; do not cite the prior report.
+**Prior ARIMA work (excerpts, no citation):** The STA6856 final project report is not officially published. The capstone **does not technically extend** that work: it uses the same data and **includes relevant excerpts** from that work (problem definition, data description, ARIMA methodology, preprocessing, forecast table/figure) in the Methods, Dataset, Implementation, and Results sections—but will **not cite or explicitly mention** the STA6856 report in the body or bibliography. Present the ARIMA content in the capstone narrative as your own methods/results; do not cite the prior report. The capstone adds an LSTM model and compares ARIMA vs LSTM on the same horizon and metrics.
 
 **Document placement:** Report, data copy, and outputs go in [docs/hw4-5](c:\src\my\uwf-idc6940-capstone\docs\hw4-5). LSTM and comparison code live in the capstone repo root [code/](c:\src\my\uwf-idc6940-capstone\code). This plan is saved in docs/hw4-5 for reference.
 
