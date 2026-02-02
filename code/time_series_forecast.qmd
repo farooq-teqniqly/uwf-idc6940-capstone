@@ -1,0 +1,184 @@
+---
+title: "Final Project"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Load time series
+
+
+```{r}
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
+```
+
+
+## Plot time series
+```{r}
+library(ggplot2)
+library(scales)
+
+start_date <- as.Date("2024-01-01")
+date_seq <- seq(from = start_date, by = "day", length.out = length(ts_data))
+
+df <- data.frame(
+  Date = date_seq,
+  Duration = as.numeric(ts_data)
+)
+
+ggplot(df, aes(x = Date, y = Duration)) +
+  geom_line() +
+  labs(
+    title = "Daily Average Uber Trip Duration (2024)",
+    x = "Month",
+    y = "Average Duration (minutes)"
+  ) +
+  scale_x_date(
+    date_breaks = "1 month",
+    date_labels = "%b"
+  ) +
+  theme_minimal()
+```
+## Plot Highlighting Weekends and Holidays
+
+```{r}
+library(dplyr)
+
+data$pickup_date <- as.Date(data$pickup_date)
+
+data <- data %>%
+  mutate(weekday = weekdays(pickup_date))
+
+fridays <- filter(data, weekday == "Friday")
+saturdays <- filter(data, weekday == "Saturday")
+sundays <- filter(data, weekday == "Sunday")
+
+holidays <- data.frame(
+  date = as.Date(c(
+    "2024-01-01",  # New Year's Day
+    "2024-01-15",  # Martin Luther King Jr. Day
+    "2024-02-19",  # Presidents' Day
+    "2024-05-27",  # Memorial Day
+    "2024-07-04",  # Independence Day
+    "2024-09-02",  # Labor Day
+    "2024-10-14",  # Columbus Day
+    "2024-11-11",  # Veterans Day
+    "2024-11-28",  # Thanksgiving
+    "2024-12-25"   # Christmas
+  )),
+  label = c(
+    "New Year's Day", "MLK Jr. Day", "Presidents' Day", "Memorial Day", "Independence Day",
+    "Labor Day", "Columbus Day", "Veterans Day", "Thanksgiving", "Christmas"
+  )
+)
+
+holidays$avg_duration_min <- data$avg_duration_min[match(holidays$date, data$pickup_date)]
+
+ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
+  geom_line(color = "gray", alpha = 0.5) +
+  geom_line(data = fridays, aes(color = "Friday")) +
+  geom_line(data = saturdays, aes(color = "Saturday")) +
+  geom_line(data = sundays, aes(color = "Sunday")) +
+  geom_point(data = holidays, aes(x = date, y = avg_duration_min), 
+             color = "black", fill = "yellow", size = 2, shape = 21) +
+  geom_text(data = holidays, aes(x = date, y = avg_duration_min, label = label), 
+            vjust = -1, size = 3, angle = 45) +
+  scale_color_manual(
+    values = c(
+      "Friday" = "#332288", 
+      "Saturday" = "#EE7733",
+      "Sunday" = "#117733"   
+    )
+  ) +
+  labs(
+    title = "Daily Average Trip Duration (2024)",
+    x = "Month", y = "Average Duration (minutes)",
+    color = "Day"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+## Stationarity Tests
+
+```{r}
+library(tseries)
+adf.test(ts_data)
+```
+
+## ACF Plot
+```{r}
+acf(ts_data, main = "ACF of Daily Average Duration", lag.max = 150)
+```
+## PACF Plot
+```{r}
+pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
+```
+
+## Model Selection and Diagnostics
+```{r}
+library(forecast)
+diff_data <- diff(ts_data)
+
+fit_1 <- Arima(ts_data, order = c(1,1,1))
+fit_2 <- Arima(ts_data, order = c(2,1,1))
+auto_fit <- auto.arima(ts_data)
+
+model_comparison <- data.frame(
+  Model = c("ARIMA(1,1,1)", "ARIMA(2,1,1)", "ARIMA(3,1,2)"),
+  AIC = c(AIC(fit_1), AIC(fit_2), AIC(auto_fit)),
+  BIC = c(BIC(fit_1), BIC(fit_2), BIC(auto_fit))
+)
+print(model_comparison)
+```
+## Check Residuals
+```{r}
+checkresiduals(fit_1)
+checkresiduals(fit_2)
+checkresiduals(auto_fit)
+```
+
+## 14-Day Forecast
+```{r}
+h <- 14
+forecast_result <- forecast(auto_fit, h = h)
+```
+
+## 14-Day Forecast Plot
+```{r}
+autoplot(forecast_result) +
+  labs(
+    title = "14-Day Forecast of Average Uber Trip Duration",
+    x = "Day",
+    y = "Avg Trip Duration (minutes)"
+  ) +
+  theme_minimal()
+```
+
+## Forecast Residuals
+```{r}
+checkresiduals(forecast_result)
+```
+
+## Table of Forecasted Values
+```{r}
+start_date <- as.Date("2025-01-01")
+forecast_dates <- seq.Date(from = start_date, by = "day", length.out = h)
+forecast_summary <- as.data.frame(forecast_result)
+formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
+
+formatted_forecast <- within(formatted_forecast, {
+  `Point Forecast` <- round(`Point Forecast`, 2)
+  `Lo 80` <- round(`Lo 80`, 2)
+  `Hi 80` <- round(`Hi 80`, 2)
+  `Lo 95` <- round(`Lo 95`, 2)
+  `Hi 95` <- round(`Hi 95`, 2)
+})
+
+print(formatted_forecast)
+```
