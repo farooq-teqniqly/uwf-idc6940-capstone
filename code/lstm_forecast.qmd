@@ -15,20 +15,7 @@ editor: source
 ## Load the data
 
 ```{r}
-# Path: same daily series as STA6856 final project (finalproject.csv).
-# Try repo data/, then code/data/, then docs/hw4-5/data/.
-data_path <- file.path(getwd(), "..", "data", "finalproject.csv")
-if (!file.exists(data_path)) {
-  data_path <- file.path(getwd(), "data", "finalproject.csv")
-}
-if (!file.exists(data_path)) {
-  data_path <- file.path(getwd(), "..", "docs", "hw4-5", "data", "finalproject.csv")
-}
-if (!file.exists(data_path)) {
-  stop("finalproject.csv not found. Place it in code/data/, repo data/, or docs/hw4-5/data/.")
-}
-
-data <- read.csv(data_path)
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
 data$pickup_date <- as.Date(data$pickup_date)
 data <- data[order(data$pickup_date), ]
 rownames(data) <- NULL
@@ -108,12 +95,15 @@ cat("X_train dim:", dim(X_train), ", y_train length:", length(y_train), "\n")
 ```{r}
 library(keras)
 
-model <- keras_model_sequential() %>%
-  layer_lstm(units = 32, input_shape = c(SEQ_LEN, 1), return_sequences = FALSE) %>%
+# Functional API (compatible with Keras 3 / TensorFlow 2.16+)
+inputs <- layer_input(shape = c(SEQ_LEN, 1))
+outputs <- inputs %>%
+  layer_lstm(units = 32, return_sequences = FALSE) %>%
   layer_dropout(rate = 0.2) %>%
   layer_dense(units = 1)
+model <- keras_model(inputs, outputs)
 
-model %>% compile(
+model$compile(
   optimizer = optimizer_adam(),
   loss = "mse"
 )
@@ -123,6 +113,7 @@ summary(model)
 ## Training
 
 ```{r}
+library(tensorflow)
 # Use 20% of training sequences as validation for early stopping
 val_idx <- sample(length(y_train), size = round(0.2 * length(y_train)))
 x_val <- X_train[val_idx, , , drop = FALSE]
@@ -130,11 +121,18 @@ y_val <- y_train[val_idx]
 x_fit <- X_train[-val_idx, , , drop = FALSE]
 y_fit <- y_train[-val_idx]
 
-history <- model %>% fit(
-  x_fit, y_fit,
-  epochs = 100,
-  batch_size = 16,
-  validation_data = list(x_val, y_val),
+# Keras 3 expects tf.Tensor with int32-compatible shapes; use numpy to avoid R→float shape
+np <- reticulate::import("numpy")
+x_fit_tf <- tf$constant(np$array(x_fit, dtype = np$float32))
+y_fit_tf <- tf$constant(np$array(y_fit, dtype = np$float32))
+x_val_tf <- tf$constant(np$array(x_val, dtype = np$float32))
+y_val_tf <- tf$constant(np$array(y_val, dtype = np$float32))
+
+history <- model$fit(
+  x_fit_tf, y_fit_tf,
+  epochs = 100L,
+  batch_size = 16L,
+  validation_data = list(x_val_tf, y_val_tf),
   callbacks = list(
     callback_early_stopping(monitor = "val_loss", patience = 15, restore_best_weights = TRUE)
   ),
@@ -148,7 +146,8 @@ history <- model %>% fit(
 library(ggplot2)
 library(tidyr)
 
-hist_df <- as.data.frame(history$metrics)
+# Keras 3 History uses .history (dict of metric name -> list of values per epoch)
+hist_df <- as.data.frame(history$history)
 hist_df$epoch <- seq_len(nrow(hist_df))
 hist_long <- pivot_longer(hist_df, cols = c(loss, val_loss), names_to = "series", values_to = "loss")
 hist_long$series <- factor(hist_long$series, levels = c("loss", "val_loss"),
@@ -175,8 +174,9 @@ forecast_scaled <- numeric(HORIZON)
 current <- last_seq_scaled
 
 for (h in seq_len(HORIZON)) {
-  pred <- predict(model, array(current, dim = c(1, SEQ_LEN, 1)), verbose = 0)
-  forecast_scaled[h] <- pred[1, 1]
+  x_h <- array(current, dim = c(1, SEQ_LEN, 1))
+  pred <- model$predict(x_h, verbose = 0L)
+  forecast_scaled[h] <- as.numeric(pred)[1]
   current <- rbind(current[-1, , drop = FALSE], pred[1, 1])
 }
 
@@ -266,9 +266,6 @@ ggplot(ts_plot_df, aes(x = Date, y = Duration)) +
 ## Save forecast for comparison with ARIMA
 
 ```{r}
-out_dir <- file.path(getwd(), "..", "docs", "hw4-5", "data")
-if (!dir.exists(out_dir)) dir.create(out_dir, recursive = TRUE)
-out_path <- file.path(out_dir, "lstm_forecast_14day.csv")
+out_path <- file.path(getwd(), "../data", "lstm_forecast_14day.csv")
 write.csv(forecast_df, out_path, row.names = FALSE)
-cat("Saved:", out_path, "\n")
 ```
