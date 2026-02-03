@@ -1,6 +1,24 @@
 # uwf-idc6940-capstone
 
-## R setup
+## R packages (both QMD files)
+
+Install the following in R so that `code/time_series_forecast.qmd` and `code/lstm_forecast.qmd` run:
+
+```r
+# Time series & ARIMA
+install.packages(c("forecast", "tseries"))
+
+# Plotting & data
+install.packages(c("ggplot2", "scales", "dplyr", "tidyr"))
+
+# Evaluation metrics (sMAPE, MASE)
+install.packages(c("Metrics", "yardstick"))
+```
+
+- **time_series_forecast.qmd** uses: `forecast`, `tseries`, `ggplot2`, `scales`, `dplyr`, `Metrics`, `yardstick`.
+- **lstm_forecast.qmd** also uses: `keras`, `tensorflow` (see below), `tidyr`.
+
+## R setup (ggplot2 / rlang)
 
 If you see `object 'ffi_list2' not found` when running the time series forecast (e.g. with `geom_line()`), reinstall rlang and ggplot2 using binaries:
 
