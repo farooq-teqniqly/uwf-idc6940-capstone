@@ -10,3 +10,17 @@ install.packages("ggplot2", type = "binary")
 ```
 
 Restart R after installing, then re-run the document.
+
+## TensorFlow (for LSTM forecast)
+
+To run `code/lstm_forecast.qmd` you need TensorFlow and Python installed for R. Follow [TensorFlow for R - Quick start](https://tensorflow.rstudio.com/install/). In R, run:
+
+```r
+install.packages("remotes")
+remotes::install_github("rstudio/tensorflow")
+reticulate::install_python()
+library(tensorflow)
+install_tensorflow(envname = "r-tensorflow")
+```
+
+Restart R after installing. To verify: `library(tensorflow); tf_config()`. The default install (Python 3.12, TensorFlow 2.16+) works with the current LSTM code (functional API and direct `$compile`/`$fit`/`$predict` calls).
