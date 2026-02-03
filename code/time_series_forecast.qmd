@@ -9,7 +9,13 @@ editor: source
 
 ```{r}
 data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
+h <- 14   # 14-day forecast (same period as LSTM for comparison)
 ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
+# Training series: all but last 14 days (so forecast aligns with LSTM test period)
+n_train <- nrow(data) - h - 1
+ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
 ```
 
 
@@ -122,11 +128,11 @@ pacf(ts_data, main = "PACF of Daily Average Duration", lag.max = 150)
 ## Model Selection and Diagnostics
 ```{r}
 library(forecast)
-diff_data <- diff(ts_data)
+diff_data <- diff(ts_data_train)
 
-fit_1 <- Arima(ts_data, order = c(1,1,1))
-fit_2 <- Arima(ts_data, order = c(2,1,1))
-auto_fit <- auto.arima(ts_data)
+fit_1 <- Arima(ts_data_train, order = c(1,1,1))
+fit_2 <- Arima(ts_data_train, order = c(2,1,1))
+auto_fit <- auto.arima(ts_data_train)
 
 model_comparison <- data.frame(
   Model = c("ARIMA(1,1,1)", "ARIMA(2,1,1)", "ARIMA(3,1,2)"),
@@ -144,7 +150,6 @@ checkresiduals(auto_fit)
 
 ## 14-Day Forecast
 ```{r}
-h <- 14
 forecast_result <- forecast(auto_fit, h = h)
 ```
 
@@ -166,8 +171,8 @@ checkresiduals(forecast_result)
 
 ## Table of Forecasted Values
 ```{r}
-start_date <- as.Date("2025-01-01")
-forecast_dates <- seq.Date(from = start_date, by = "day", length.out = h)
+# Same 14-day period as LSTM (last 14 days of 2024) for fair comparison
+forecast_dates <- data$pickup_date[(n_train + 1):(n_train + h)]
 forecast_summary <- as.data.frame(forecast_result)
 formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
 
@@ -180,4 +185,38 @@ formatted_forecast <- within(formatted_forecast, {
 })
 
 print(formatted_forecast)
+
+# Save for comparison with LSTM (compare_forecasts.py)
+arima_forecast_df <- data.frame(
+  date = forecast_dates,
+  actual = data$avg_duration_min[(n_train + 1):(n_train + h)],
+  forecast = formatted_forecast$`Point Forecast`
+)
+write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
+```
+
+## Evaluation: sMAPE and MASE
+
+```{r}
+smape <- function(actual, forecast) {
+  num <- abs(actual - forecast)
+  denom <- (abs(actual) + abs(forecast)) / 2
+  denom[denom == 0] <- 1e-8
+  mean(num / denom) * 100
+}
+
+mase <- function(actual, forecast, train_vals) {
+  mae_f <- mean(abs(actual - forecast))
+  naive_err <- abs(diff(train_vals))
+  mae_naive <- mean(naive_err)
+  if (mae_naive == 0) return(NA)
+  mae_f / mae_naive
+}
+
+train_vals <- data$avg_duration_min[1:n_train]
+arima_smape <- smape(arima_forecast_df$actual, arima_forecast_df$forecast)
+arima_mase <- mase(arima_forecast_df$actual, arima_forecast_df$forecast, train_vals)
+
+cat("ARIMA sMAPE (%):", round(arima_smape, 4), "\n")
+cat("ARIMA MASE:", round(arima_mase, 4), "\n")
 ```
