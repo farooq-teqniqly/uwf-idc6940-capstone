@@ -416,3 +416,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# R files
+.RData
+.Rhistory
+.Rproj.user
+.Rproj.user/
+.Rproj.user/
