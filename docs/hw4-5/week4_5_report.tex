@@ -96,7 +96,24 @@ The primary data source used in the capstone is the CSV file explained in ~\ref{
 
 \subsection{Access and Loading}
 
-The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_series}) The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in the capstone repo (e.g.\ \texttt{code/data/finalproject.csv} or \texttt{docs/hw4-5/data/finalproject.csv}); the same file is used by both ARIMA (in the prior R/Quarto pipeline) and LSTM (\texttt{lstm\_forecast.qmd}).
+The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_series}) The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in the capstone repo (e.g.\ \texttt{code/data/finalproject.csv} or \texttt{docs/hw4-5/data/finalproject.csv}); the same file is used by both ARIMA (in the prior R/Quarto pipeline) and LSTM (\texttt{lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
+
+\begin{table}[ht]
+\centering
+\caption{First five rows of the CSV (pickup\_date, avg\_duration\_min, weekday).}
+\label{tab:csv_preview}
+\begin{tabular}{lcr}
+\toprule
+\texttt{pickup\_date} & \texttt{avg\_duration\_min} & \texttt{weekday} \\
+\midrule
+2024-01-01 & 18 & Monday \\
+2024-01-02 & 18 & Tuesday \\
+2024-01-03 & 18 & Wednesday \\
+2024-01-04 & 18 & Thursday \\
+2024-01-05 & 18 & Friday \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 %=============================================================================
 \section{Implementation and Experiments}
