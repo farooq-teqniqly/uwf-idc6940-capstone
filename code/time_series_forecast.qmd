@@ -1,12 +1,11 @@
 ---
-title: "Final Project"
+title: "Capstone"
 author: "Farooq Mahmud"
 format: pdf
 editor: source
 ---
 
 ## Load time series
-
 
 ```{r}
 data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
