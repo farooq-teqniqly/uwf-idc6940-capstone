@@ -68,13 +68,13 @@ The following preprocessing is common to both modeling methods and produces the 
 \item \textbf{Basic cleaning.} Remove trips with zero or negative duration, distance, or speed. Remove obvious outliers: trip duration outside 1--120 minutes, trip distance outside 0.1--100 miles, average speed outside 1--80 mph.
 \item \textbf{IQR-based outlier removal.} For \texttt{trip\_duration\_min}, \texttt{trip\_miles}, and \texttt{avg\_speed\_mph}, compute the interquartile range (IQR) and drop trips above $Q_3 + 1.5 \times \text{IQR}$ for each variable.
 \item \textbf{Aggregation.} Group by \texttt{pickup\_date} (date of \texttt{pickup\_datetime}), compute the mean trip duration per day (\texttt{avg\_duration\_min}), order by date, and round the average. The result is one row per day (366 days for 2024).
-\item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points. No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
+\item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points (listing ~\ref{lst:load_time_series}). No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
 \end{enumerate}
 
 \subsection{Modeling Plan}
 
 \paragraph{ARIMA.}
-The first forecasting method is an ARIMA model fitted to the time-series. Stationarity is assessed using the Augmented Dickey--Fuller test. Candidate ARIMA models are compared using AIC and BIC \cite{forecast_auto_arima}. residual diagnostics (Ljung--Box test, ACF of residuals) are used to select the final specification. The chosen model is ARIMA(3,1,2): three autoregressive terms, one order of differencing, and two moving-average terms. A 14-day point forecast is produced with 80\% and 95\% prediction intervals. The narrative presents this methodology via relevant excerpts; the prior report is not cited.
+The first forecasting method is an ARIMA model fitted to the time-series. The ARIMA model is created using the \texttt{auto.arima} function in R. This function combines stationarity testing (Augmented Dickey--Fuller test) and chooses the best model based on AIC and BIC \cite{forecast_auto_arima}. The code is shown in listing ~\ref{lst:arima_model}.
 
 \paragraph{LSTM.}
 The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
@@ -96,7 +96,7 @@ The primary data source used in the capstone is the CSV file explained in ~\ref{
 
 \subsection{Access and Loading}
 
-The dataset is loaded in R via \texttt{read.csv()} (see \texttt{code/lstm\_forecast.qmd}). Proof of load: the series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in the capstone repo (e.g.\ \texttt{code/data/finalproject.csv} or \texttt{docs/hw4-5/data/finalproject.csv}); the same file is used by both ARIMA (in the prior R/Quarto pipeline) and LSTM (\texttt{lstm\_forecast.qmd}).
+The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_series}) The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in the capstone repo (e.g.\ \texttt{code/data/finalproject.csv} or \texttt{docs/hw4-5/data/finalproject.csv}); the same file is used by both ARIMA (in the prior R/Quarto pipeline) and LSTM (\texttt{lstm\_forecast.qmd}).
 
 %=============================================================================
 \section{Implementation and Experiments}
@@ -280,6 +280,21 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
          .mode("overwrite") \
          .csv(final_path)
 \end{lstlisting}
+
+\section{Time-series Modeling Code}\label{appendix:time_series_modeling_code}
+\begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:load_time_series]
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
+\end{lstlisting}
+
+
+The \texttt{auto.arima} function is used to determine the best time-series model based on AIC and BIC.
+
+\begin{lstlisting}[style=pystyle, caption={ARIMA Model}, label=lst:arima_model]
+library(forecast)
+fit_auto <- auto.arima(ts_data)
+\end{lstlisting}
+
 
 %=============================================================================
 \bibliographystyle{plain}
