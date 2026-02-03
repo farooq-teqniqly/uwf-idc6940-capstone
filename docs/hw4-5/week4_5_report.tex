@@ -58,7 +58,14 @@ The following preprocessing is common to both modeling methods and produces the 
 
 \subsection{Modeling Plan}
 
-(1)~ARIMA: The narrative includes relevant excerpts (ARIMA(3,1,2), 14-day forecast, AIC/BIC, Ljung--Box); the prior report is not cited. (2)~LSTM: Implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}: one LSTM layer, sliding-window sequences, recursive 1-step 14-day forecast. (3)~Comparison: Same horizon (14 days) and same metrics (sMAPE, MASE) \cite{hyndman2006,prabhat2024} for both methods.
+\paragraph{ARIMA.}
+The first method is an autoregressive integrated moving average (ARIMA) model fitted to the univariate daily series. Stationarity is assessed (e.g., Augmented Dickey--Fuller test); autocorrelation (ACF) and partial autocorrelation (PACF) plots guide the choice of AR and MA orders. Candidate models (e.g., ARIMA(1,1,1), ARIMA(2,1,1), ARIMA(3,1,2)) are compared using AIC and BIC; residual diagnostics (Ljung--Box test, ACF of residuals) are used to select the final specification. The chosen model is ARIMA(3,1,2): three autoregressive terms, one order of differencing, and two moving-average terms. A 14-day point forecast is produced with 80\% and 95\% prediction intervals. The narrative presents this methodology via relevant excerpts; the prior report is not cited.
+
+\paragraph{LSTM.}
+The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
+
+\paragraph{Comparison.}
+Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE) and one figure (actual vs both forecasts over the 14 days).
 
 \subsection{Evaluation Plan}
 
