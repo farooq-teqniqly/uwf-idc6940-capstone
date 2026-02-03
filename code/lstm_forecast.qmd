@@ -219,26 +219,50 @@ ggplot(forecast_df, aes(x = date)) +
 ## Evaluation: sMAPE and MASE
 
 ```{r}
-smape <- function(actual, forecast) {
-  num <- abs(actual - forecast)
-  denom <- (abs(actual) + abs(forecast)) / 2
-  denom[denom == 0] <- 1e-8
-  mean(num / denom) * 100
-}
+library(Metrics)
+library(yardstick)
 
-mase <- function(actual, forecast, train_vals) {
-  mae_f <- mean(abs(actual - forecast))
-  naive_err <- abs(diff(train_vals))
-  mae_naive <- mean(naive_err)
-  if (mae_naive == 0) return(NA)
-  mae_f / mae_naive
-}
-
-lstm_smape <- smape(forecast_df$actual, forecast_df$forecast)
-lstm_mase <- mase(forecast_df$actual, forecast_df$forecast, as.numeric(train_values))
+mae_train <- mean(abs(diff(as.numeric(train_values))))
+# Metrics::smape returns proportion; * 100 for percentage
+lstm_smape <- Metrics::smape(forecast_df$actual, forecast_df$forecast) * 100
+lstm_mase <- yardstick::mase_vec(
+  truth = forecast_df$actual,
+  estimate = forecast_df$forecast,
+  m = 1,
+  mae_train = mae_train
+)
 
 cat("LSTM sMAPE (%):", round(lstm_smape, 4), "\n")
 cat("LSTM MASE:", round(lstm_mase, 4), "\n")
+```
+
+## Comparison: ARIMA vs LSTM
+
+```{r}
+arima_path <- file.path(getwd(), "../data", "arima_forecast_14day.csv")
+comparison <- data.frame(
+  Model = "LSTM",
+  sMAPE_pct = round(lstm_smape, 4),
+  MASE = round(lstm_mase, 4)
+)
+if (file.exists(arima_path)) {
+  arima_df <- read.csv(arima_path)
+  arima_df$actual <- as.numeric(arima_df$actual)
+  arima_df$forecast <- as.numeric(arima_df$forecast)
+  arima_smape <- Metrics::smape(arima_df$actual, arima_df$forecast) * 100
+  arima_mase <- yardstick::mase_vec(
+    truth = arima_df$actual,
+    estimate = arima_df$forecast,
+    m = 1,
+    mae_train = mae_train
+  )
+  comparison <- rbind(
+    data.frame(Model = "ARIMA", sMAPE_pct = round(arima_smape, 4), MASE = round(arima_mase, 4)),
+    comparison
+  )
+}
+names(comparison)[2] <- "sMAPE (%)"
+print(comparison)
 ```
 
 ## Time series plot (full year, same style as finalproject.qmd)
