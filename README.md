@@ -13,6 +13,9 @@ install.packages(c("ggplot2", "scales", "dplyr", "tidyr"))
 
 # Evaluation metrics (sMAPE, MASE)
 install.packages(c("Metrics", "yardstick"))
+
+# Run QMD in RStudio
+install.packages("rmarkdown")
 ```
 
 - **time_series_forecast.qmd** uses: `forecast`, `tseries`, `ggplot2`, `scales`, `dplyr`, `Metrics`, `yardstick`.
@@ -39,6 +42,7 @@ remotes::install_github("rstudio/tensorflow")
 reticulate::install_python()
 library(tensorflow)
 install_tensorflow(envname = "r-tensorflow")
+install.packages("keras")
 ```
 
 Restart R after installing. To verify: `library(tensorflow); tf_config()`. The default install (Python 3.12, TensorFlow 2.16+) works with the current LSTM code (functional API and direct `$compile`/`$fit`/`$predict` calls).
