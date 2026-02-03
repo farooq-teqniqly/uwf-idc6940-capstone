@@ -11,10 +11,11 @@ editor: source
 data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
 data$pickup_date <- as.Date(data$pickup_date)
 data <- data[order(data$pickup_date), ]
-h <- 14   # 14-day forecast (same period as LSTM for comparison)
+h <- 14          # 14-day forecast (same period as LSTM for comparison)
+VAL_DAYS <- 30   # match LSTM: 30 validation + 14 test held out
 ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
-# Training series: all but last 14 days (so forecast aligns with LSTM test period)
-n_train <- nrow(data) - h - 1
+# Training series: same as LSTM (first 322 days; then 30 val + 14 test)
+n_train <- nrow(data) - VAL_DAYS - h
 ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
 ```
 
@@ -150,7 +151,8 @@ checkresiduals(auto_fit)
 
 ## 14-Day Forecast
 ```{r}
-forecast_result <- forecast(auto_fit, h = h)
+# Forecast 44 steps (val + test) so last 14 match LSTM test period
+forecast_result <- forecast(auto_fit, h = VAL_DAYS + h)
 ```
 
 ## 14-Day Forecast Plot
@@ -172,8 +174,10 @@ checkresiduals(forecast_result)
 ## Table of Forecasted Values
 ```{r}
 # Same 14-day period as LSTM (last 14 days of 2024) for fair comparison
-forecast_dates <- data$pickup_date[(n_train + 1):(n_train + h)]
-forecast_summary <- as.data.frame(forecast_result)
+forecast_full <- as.data.frame(forecast_result)
+# Use last 14 of the 44-step forecast (steps 31:44 = LSTM test period)
+forecast_summary <- forecast_full[(VAL_DAYS + 1):(VAL_DAYS + h), ]
+forecast_dates <- data$pickup_date[(nrow(data) - h + 1):nrow(data)]
 formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
 
 formatted_forecast <- within(formatted_forecast, {
@@ -189,7 +193,7 @@ print(formatted_forecast)
 # Save for comparison with LSTM (compare_forecasts.py)
 arima_forecast_df <- data.frame(
   date = forecast_dates,
-  actual = data$avg_duration_min[(n_train + 1):(n_train + h)],
+  actual = data$avg_duration_min[(nrow(data) - h + 1):nrow(data)],
   forecast = formatted_forecast$`Point Forecast`
 )
 write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
