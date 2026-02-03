@@ -43,9 +43,9 @@ This capstone predicts daily average Uber trip duration (in minutes) in New York
 
 The data are daily average Uber trip duration (in minutes) for New York City in 2024, derived from the New York City Taxi and Limousine Commission (TLC) High-Volume FHV trip record data \cite{nyctlc2024}. Key variables are \texttt{pickup\_date} and \texttt{avg\_duration\_min}. The preprocessed time-series has 366 daily observations. Preprocessing is done via PySpark aggregation to daily averages.
 
-\subsection{Preprocessing Plan}
+\subsection{Preprocessing Plan} \label{sec:preprocessing}
 
-The following preprocessing is common to both modeling methods and produces the single daily time series (\texttt{pickup\_date}, \texttt{avg\_duration\_min}) that both ARIMA and LSTM use. It was applied to the NYC TLC High-Volume FHV trip record data \cite{nyctlc2024}. Preprocessing is necessary because the original dataset contains over 200 million trip records, of which only 10\% are Uber trip records. Outliers and invalid or nonsensical data are also removed.
+The following preprocessing is common to both modeling methods and produces the single daily time series (\texttt{pickup\_date}, \texttt{avg\_duration\_min}) that both ARIMA and LSTM use. It was applied to the NYC TLC High-Volume FHV trip record data \cite{nyctlc2024}. Preprocessing is necessary because the original dataset contains over 200 million trip records, of which about 179 million are Uber trip records. Outliers and invalid or nonsensical data are also removed resulting in a final total of about 159 million rows. These rows are converted to a CSV file representing the time-series. The CSV contains the 366 daily average trip duration (minutes) for 2024, produced by aggregating trip-level records (via PySpark) to one row per day.
 
 \begin{enumerate}
 \item \textbf{Filter to Uber trips.} Retain only records with \texttt{hvfhs\_license\_num} equal to \texttt{HV0003} (Uber).
@@ -59,7 +59,7 @@ The following preprocessing is common to both modeling methods and produces the 
 \subsection{Modeling Plan}
 
 \paragraph{ARIMA.}
-The first method is an autoregressive integrated moving average (ARIMA) model fitted to the univariate daily series. Stationarity is assessed (e.g., Augmented Dickey--Fuller test); autocorrelation (ACF) and partial autocorrelation (PACF) plots guide the choice of AR and MA orders. Candidate models (e.g., ARIMA(1,1,1), ARIMA(2,1,1), ARIMA(3,1,2)) are compared using AIC and BIC \cite{forecast_auto_arima}; residual diagnostics (Ljung--Box test, ACF of residuals) are used to select the final specification. The chosen model is ARIMA(3,1,2): three autoregressive terms, one order of differencing, and two moving-average terms. A 14-day point forecast is produced with 80\% and 95\% prediction intervals. The narrative presents this methodology via relevant excerpts; the prior report is not cited.
+The first forecasting method is an ARIMA model fitted to the time-series. Stationarity is assessed using the Augmented Dickey--Fuller test. Candidate ARIMA models are compared using AIC and BIC \cite{forecast_auto_arima}. residual diagnostics (Ljung--Box test, ACF of residuals) are used to select the final specification. The chosen model is ARIMA(3,1,2): three autoregressive terms, one order of differencing, and two moving-average terms. A 14-day point forecast is produced with 80\% and 95\% prediction intervals. The narrative presents this methodology via relevant excerpts; the prior report is not cited.
 
 \paragraph{LSTM.}
 The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
@@ -77,7 +77,7 @@ Metrics are sMAPE and MASE over the 14-day forecast \cite{hyndman2006,prabhat202
 
 \subsection{Source}
 
-The primary data source is the New York City TLC High-Volume FHV trip record data \cite{nyctlc2024}. The CSV used in this capstone contains the 366 daily average trip duration (minutes) for 2024, produced by aggregating trip-level records (via PySpark) to one row per day.
+The primary data source used in the capstone is the CSV file explained in ~\ref{sec:preprocessing}.
 
 \subsection{Access and Loading}
 
