@@ -1,0 +1,164 @@
+---
+title: "LSTM R/Quarto Pipeline"
+author: "Farooq Mahmud"
+format: html
+editor: source
+---
+
+## Load time series
+
+```{r}
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
+```
+
+## Preprocessing
+
+### Train / validation / test split (chronological)
+
+```{r}
+HORIZON <- 14   # 14-day forecast (same as ARIMA)
+VAL_DAYS <- 30
+n <- nrow(data)
+test_end <- n
+test_start <- test_end - HORIZON
+val_end <- test_start
+val_start <- val_end - VAL_DAYS
+train_end <- val_start
+
+values <- matrix(data$avg_duration_min, ncol = 1)
+train_values <- values[1:train_end, , drop = FALSE]
+val_values <- values[val_start:(val_end - 1), , drop = FALSE]
+test_values <- values[test_start:(test_end - 1), , drop = FALSE]
+test_dates <- data$pickup_date[test_start:(test_end - 1)]
+
+```
+
+### Scaling
+
+```{r}
+min_val <- min(train_values)
+max_val <- max(train_values)
+scale_fun <- function(x) (x - min_val) / (max_val - min_val)
+inv_scale_fun <- function(z) z * (max_val - min_val) + min_val
+
+train_scaled <- scale_fun(train_values)
+val_scaled <- scale_fun(val_values)
+test_scaled <- scale_fun(test_values)
+```
+
+### Sequence construction (sliding window)
+
+```{r}
+SEQ_LEN <- 21
+
+create_sequences <- function(scaled_data, seq_len) {
+  X <- array(NA, dim = c(nrow(scaled_data) - seq_len, seq_len, 1))
+  y <- numeric(nrow(scaled_data) - seq_len)
+  for (i in seq_len(nrow(scaled_data) - seq_len)) {
+    ii <- i + seq_len - 1
+    X[i, , 1] <- scaled_data[i:ii, 1]
+    y[i] <- scaled_data[ii + 1, 1]
+  }
+  list(X = X, y = y)
+}
+
+train_val_scaled <- rbind(train_scaled, val_scaled)
+seqs <- create_sequences(train_val_scaled, SEQ_LEN)
+X_train <- seqs$X
+y_train <- seqs$y
+```
+
+## Model (LSTM)
+
+```{r}
+library(keras)
+
+inputs <- layer_input(shape = c(SEQ_LEN, 1))
+outputs <- inputs %>%
+  layer_lstm(units = 32, return_sequences = FALSE) %>%
+  layer_dropout(rate = 0.2) %>%
+  layer_dense(units = 1)
+model <- keras_model(inputs, outputs)
+
+model$compile(
+  optimizer = optimizer_adam(),
+  loss = "mse"
+)
+```
+
+## Training
+
+```{r}
+library(tensorflow)
+# Use 20% of training sequences as validation for early stopping
+val_idx <- sample(length(y_train), size = round(0.2 * length(y_train)))
+x_val <- X_train[val_idx, , , drop = FALSE]
+y_val <- y_train[val_idx]
+x_fit <- X_train[-val_idx, , , drop = FALSE]
+y_fit <- y_train[-val_idx]
+
+np <- reticulate::import("numpy")
+x_fit_tf <- tf$constant(np$array(x_fit, dtype = np$float32))
+y_fit_tf <- tf$constant(np$array(y_fit, dtype = np$float32))
+x_val_tf <- tf$constant(np$array(x_val, dtype = np$float32))
+y_val_tf <- tf$constant(np$array(y_val, dtype = np$float32))
+
+history <- model$fit(
+  x_fit_tf, y_fit_tf,
+  epochs = 100L,
+  batch_size = 16L,
+  validation_data = list(x_val_tf, y_val_tf),
+  callbacks = list(
+    callback_early_stopping(monitor = "val_loss", patience = 15, restore_best_weights = TRUE)
+  ),
+  verbose = 1
+)
+```
+
+## 14-day forecast
+
+```{r}
+last_seq <- values[(test_start - SEQ_LEN):(test_start - 1), , drop = FALSE]
+last_seq_scaled <- scale_fun(last_seq)
+forecast_scaled <- numeric(HORIZON)
+current <- last_seq_scaled
+
+for (h in seq_len(HORIZON)) {
+  x_h <- array(current, dim = c(1, SEQ_LEN, 1))
+  pred <- model$predict(x_h, verbose = 0L)
+  forecast_scaled[h] <- as.numeric(pred)[1]
+  current <- rbind(current[-1, , drop = FALSE], pred[1, 1])
+}
+
+forecast <- inv_scale_fun(forecast_scaled)
+forecast_df <- data.frame(
+  date = test_dates,
+  actual = as.numeric(test_values),
+  forecast = forecast
+)
+forecast_df
+
+out_path <- file.path(getwd(), "../data", "lstm_forecast_14day.csv")
+write.csv(forecast_df, out_path, row.names = FALSE)
+```
+
+## Evaluation: sMAPE and MASE
+
+```{r}
+library(Metrics)
+library(yardstick)
+
+mae_train <- mean(abs(diff(as.numeric(train_values))))
+lstm_smape <- Metrics::smape(forecast_df$actual, forecast_df$forecast) * 100
+lstm_mase <- yardstick::mase_vec(
+  truth = forecast_df$actual,
+  estimate = forecast_df$forecast,
+  m = 1,
+  mae_train = mae_train
+)
+
+cat("LSTM sMAPE (%):", round(lstm_smape, 4), "\n")
+cat("LSTM MASE:", round(lstm_mase, 4), "\n")
+```
