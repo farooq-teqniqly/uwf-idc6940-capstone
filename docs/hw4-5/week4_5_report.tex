@@ -123,7 +123,7 @@ The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_
 
 \paragraph{Preprocessing (\texttt{capstone\_project\_preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
 
-\paragraph{ARIMA (\texttt{time\_series\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} and uses the same chronological split as LSTM: last 14 days as test, preceding 30 as validation, remainder as training. It runs \texttt{auto.arima}, which selects ARIMA(3,1,2)). A 44-step forecast is produced. The last 14 steps are extracted to align with the LSTM test window. The pipeline computes sMAPE and MASE using \texttt{Metrics::smape} and \texttt{yardstick::mase\_vec}, and writes \texttt{arima\_forecast\_14day.csv} (columns: \texttt{date}, \texttt{actual}, \texttt{forecast}) to \texttt{../data/} for comparison. It also includes an optional side-by-side comparison with LSTM when \texttt{lstm\_forecast\_14day.csv} is present.
+\paragraph{ARIMA (\texttt{time\_series\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing ~\ref{lst:load_time_series}) and uses the same chronological split as LSTM--- last 14 days as test, preceding 30 as validation, remainder as training (Listing ~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing ~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing ~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{arima\_forecast\_14day.csv} for comparison with LSTM (Listing ~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:time_series_eval}).
 
 \paragraph{LSTM (\texttt{lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV and applies a chronological train/validation/test split (last 14 days test, preceding 30 validation). Values are min-max scaled using the training range. Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()}; the model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (functional API). Training uses 20\% of training sequences as validation for early stopping (\texttt{patience = 15}, \texttt{restore\_best\_weights = TRUE}), Adam optimizer, MSE loss, up to 100 epochs, batch size 16. The 14-day forecast is produced recursively: the last 21-day window before the test period is fed to the model; each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{lstm\_forecast\_14day.csv}, plots training/validation loss and actual vs LSTM forecast, computes sMAPE and MASE, and optionally compares with ARIMA when \texttt{arima\_forecast\_14day.csv} exists.
 
@@ -305,10 +305,76 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
 \end{lstlisting}
 
 \section{Time-series Modeling Code}\label{appendix:time_series_modeling_code}
+
 \begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:load_time_series]
 data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
-ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
 \end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Create Training Time Series}, label=lst:training_time_series]
+
+h <- 14          # 14-day forecast (same period as LSTM for comparison)
+VAL_DAYS <- 30   # match LSTM: 30 validation + 14 test held out
+
+# Training series: same as LSTM (first 322 days; then 30 validation + 14 test)
+n_train <- nrow(data) - VAL_DAYS - h
+ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={14-day Forecast}, label=lst:time_series_forecast]
+forecast_result <- forecast(auto_fit, h = VAL_DAYS + h)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={14-day Forecast}, label=lst:save_ts_forecast]
+# Same 14-day period as LSTM (last 14 days of 2024) for fair comparison
+forecast_full <- as.data.frame(forecast_result)
+# Use last 14 of the 44-step forecast (steps 31:44 = LSTM test period)
+forecast_summary <- forecast_full[(VAL_DAYS + 1):(VAL_DAYS + h), ]
+forecast_dates <- data$pickup_date[(nrow(data) - h + 1):nrow(data)]
+
+# Save forecast to CSV for comparison with LSTM
+
+formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
+
+formatted_forecast <- within(formatted_forecast, {
+  `Point Forecast` <- round(`Point Forecast`, 2)
+  `Lo 80` <- round(`Lo 80`, 2)
+  `Hi 80` <- round(`Hi 80`, 2)
+  `Lo 95` <- round(`Lo 95`, 2)
+  `Hi 95` <- round(`Hi 95`, 2)
+})
+
+arima_forecast_df <- data.frame(
+  date = forecast_dates,
+  actual = data$avg_duration_min[(nrow(data) - h + 1):nrow(data)],
+  forecast = formatted_forecast$`Point Forecast`
+)
+
+write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={14-day Forecast}, label=lst:time_series_eval]
+library(Metrics)
+library(yardstick)
+
+train_vals <- data$avg_duration_min[1:n_train]
+mae_train <- mean(abs(diff(train_vals)))
+
+# Metrics::smape returns proportion; multiply by 100 for percentage
+arima_smape <- Metrics::smape(arima_forecast_df$actual, arima_forecast_df$forecast) * 100
+
+arima_mase <- yardstick::mase_vec(
+  truth = arima_forecast_df$actual,
+  estimate = arima_forecast_df$forecast,
+  m = 1,
+  mae_train = mae_train
+)
+
+cat("ARIMA sMAPE (%):", round(arima_smape, 4), "\n")
+cat("ARIMA MASE:", round(arima_mase, 4), "\n")
+\end{lstlisting}
+
 
 
 The \texttt{auto.arima} function is used to determine the best time-series model based on AIC and BIC.
