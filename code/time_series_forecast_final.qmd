@@ -1,7 +1,7 @@
 ---
-title: "Capstone"
+title: "ARIMA R/Quarto Pipeline"
 author: "Farooq Mahmud"
-format: pdf
+format: html
 editor: source
 ---
 
@@ -15,8 +15,6 @@ data <- data[order(data$pickup_date), ]
 h <- 14          # 14-day forecast (same period as LSTM for comparison)
 VAL_DAYS <- 30   # match LSTM: 30 validation + 14 test held out
 
-ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
-
 # Training series: same as LSTM (first 322 days; then 30 validation + 14 test)
 n_train <- nrow(data) - VAL_DAYS - h
 ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
@@ -26,6 +24,7 @@ ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c
 ```{r}
 library(forecast)
 auto_fit <- auto.arima(ts_data_train)
+auto_fit
 ```
 
 ## 14-Day Forecast
@@ -43,11 +42,24 @@ forecast_summary <- forecast_full[(VAL_DAYS + 1):(VAL_DAYS + h), ]
 forecast_dates <- data$pickup_date[(nrow(data) - h + 1):nrow(data)]
 
 # Save forecast to CSV for comparison with LSTM
+
+formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
+
+formatted_forecast <- within(formatted_forecast, {
+  `Point Forecast` <- round(`Point Forecast`, 2)
+  `Lo 80` <- round(`Lo 80`, 2)
+  `Hi 80` <- round(`Hi 80`, 2)
+  `Lo 95` <- round(`Lo 95`, 2)
+  `Hi 95` <- round(`Hi 95`, 2)
+})
+
 arima_forecast_df <- data.frame(
   date = forecast_dates,
   actual = data$avg_duration_min[(nrow(data) - h + 1):nrow(data)],
   forecast = formatted_forecast$`Point Forecast`
 )
+
+print(formatted_forecast)
 
 write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
 ```
