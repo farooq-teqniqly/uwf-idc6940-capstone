@@ -9,6 +9,7 @@
 \usepackage[colorlinks,linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{float}
 
 \lstdefinestyle{pystyle}{
     language=Python,
@@ -525,16 +526,17 @@ cat("LSTM sMAPE (%):", round(lstm_smape, 4), "\n")
 cat("LSTM MASE:", round(lstm_mase, 4), "\n")
 \end{lstlisting}
 
+\clearpage
 \section{Forecast Tables}\label{appendix:forecast_tables}
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{ARIMA_table_forecast}
   \caption{ARIMA 14-day forecast table (point forecast and prediction intervals).}
   \label{fig:arima_table}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{LSTM_table_forecast}
   \caption{LSTM 14-day forecast table (actual vs forecast).}
