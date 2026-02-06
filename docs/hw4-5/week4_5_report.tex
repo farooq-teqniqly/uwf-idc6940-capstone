@@ -125,21 +125,20 @@ The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_
 
 \paragraph{ARIMA (\texttt{time\_series\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing ~\ref{lst:load_time_series}) and uses the same chronological split as LSTM--- last 14 days as test, preceding 30 as validation, remainder as training (Listing ~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing ~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing ~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{arima\_forecast\_14day.csv} for comparison with LSTM (Listing ~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:time_series_eval}).
 
-\paragraph{LSTM (\texttt{lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV and applies a chronological train/validation/test split (last 14 days test, preceding 30 validation). Values are min-max scaled using the training range. Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()}; the model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (functional API). Training uses 20\% of training sequences as validation for early stopping (\texttt{patience = 15}, \texttt{restore\_best\_weights = TRUE}), Adam optimizer, MSE loss, up to 100 epochs, batch size 16. The 14-day forecast is produced recursively: the last 21-day window before the test period is fed to the model; each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{lstm\_forecast\_14day.csv}, plots training/validation loss and actual vs LSTM forecast, computes sMAPE and MASE, and optionally compares with ARIMA when \texttt{arima\_forecast\_14day.csv} exists.
+\paragraph{LSTM (\texttt{lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing ~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing ~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing ~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing ~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively--- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{lstm\_forecast\_14day.csv} for comparsion to the ARIMA model (Listing ~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:lstm_eval}).
 
-\paragraph{Comparison (\texttt{compare\_forecasts.py}).} A Python script reads \texttt{lstm\_forecast\_14day.csv} and \texttt{arima\_forecast\_14day.csv} (and optionally \texttt{finalproject.csv} for the naive one-step MAE used in MASE). It implements \texttt{smape()} and \texttt{mase()}, computes both metrics for ARIMA and LSTM over the same 14-day period, prints a comparison table, writes \texttt{comparison\_table.csv}, and produces a single figure (actual vs ARIMA vs LSTM) saved as \texttt{comparison\_plot.png}. The script accepts \texttt{--data-dir} (default: \texttt{docs/hw4-5/data}) and \texttt{--out-dir} for output paths.
 
 \subsection{What Was Tested}
 
-Dataset: \texttt{finalproject.csv} (full 2024, 366 days). For LSTM, the series is split chronologically: the last 14 days are held out as test; the preceding 30 days as validation; the remainder as training. The same 14-day test window is used for evaluation so that ARIMA and LSTM can be compared on the same dates. Target variable: \texttt{avg\_duration\_min} (daily average trip duration in minutes).
+The dataset \texttt{finalproject.csv} contains the average trip duration in minutes for the 366 days of 2024. For LSTM, the series is split chronologically--- the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. The same 14-day test window is used for evaluation so that ARIMA and LSTM can be compared on the same dates. The target variable is \texttt{avg\_duration\_min} (daily average trip duration in minutes).
 
 \subsection{What Worked and What Did Not}
 
-ARIMA fitting and 14-day forecasting run successfully with the chosen specification. The LSTM pipeline runs end-to-end; early stopping on validation loss is used to limit overfitting. Limitations encountered: (i)~small sample size (366 points) limits LSTM capacity and favors simpler models; (ii)~hyperparameters (sequence length, units, dropout) were chosen pragmatically and could be refined; (iii)~alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured (e.g., both forecasting the same last-14-days window) for a fair comparison.
+ARIMA fitting and 14-day forecasting run successfully with the chosen specification. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. Three limitations were encountered: (i)~small sample size (366 points) limits LSTM capacity and favors simpler models, (ii)~hyperparameters (sequence length, units, dropout) were chosen pragmatically and could be refined, and (iii)~alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
 
 \subsection{Preliminary Outputs}
 
-ARIMA: 14-day forecast table and plot are included as excerpts in Section~\ref{sec:results-arima}. LSTM: 14-day forecast figure and training/validation loss curve are produced by \texttt{lstm\_forecast.qmd}. Comparison: table (ARIMA vs LSTM sMAPE, MASE) and plot (actual vs both forecasts over the 14 days) are generated by \texttt{compare\_forecasts.py} and included in Section~\ref{sec:results-compare}.
+For the ARIMA model, a 14-day forecast table and plot are included as excerpts in Section~\ref{sec:results-arima}. For LSTM, a 14-day forecast figure and training/validation loss curve are produced by \texttt{lstm\_forecast.qmd}. Comparison: table (ARIMA vs LSTM sMAPE, MASE) and plot (actual vs both forecasts over the 14 days) are generated by \texttt{compare\_forecasts.py} and included in Section~\ref{sec:results-compare}.
 
 %=============================================================================
 \section{Results (Preliminary)}
@@ -147,7 +146,7 @@ ARIMA: 14-day forecast table and plot are included as excerpts in Section~\ref{s
 
 \subsection{ARIMA}\label{sec:results-arima}
 
-The ARIMA(3,1,2) model produces a 14-day point forecast with 80\% and 95\% prediction intervals. Excerpts of the forecast table (dates, point forecast, Lo/Hi 80 and 95) and the forecast plot are included here. [Insert forecast table and figure from the ARIMA pipeline run.]
+The ARIMA(1,1,4) model produces a 14-day point forecast with 80\% and 95\% prediction intervals. Excerpts of the forecast table (dates, point forecast, Lo/Hi 80 and 95) and the forecast plot are included here. [Insert forecast table and figure from the ARIMA pipeline run.]
 
 \subsection{LSTM}
 
@@ -241,7 +240,7 @@ df_clean = df_clean.filter(
 )
 \end{lstlisting}
 
-IQR-based outlier removal is applied (Listing~\ref{lst:pyspark_outliers}): for each of \texttt{trip\_duration\_min}, \texttt{trip\_miles}, and \texttt{avg\_speed\_mph}, trips above $Q_3 + 1.5 \times \text{IQR}$ are dropped.
+
 
 \begin{lstlisting}[style=pystyle, caption={IQR-based outlier removal}, label=lst:pyspark_outliers]
 columns_to_check = ["trip_duration_min", "trip_miles", "avg_speed_mph"]
@@ -354,7 +353,7 @@ arima_forecast_df <- data.frame(
 write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
 \end{lstlisting}
 
-\begin{lstlisting}[style=pystyle, caption={14-day Forecast}, label=lst:time_series_eval]
+\begin{lstlisting}[style=pystyle, caption={ARIMA Model Evaluation}, label=lst:time_series_eval]
 library(Metrics)
 library(yardstick)
 
@@ -384,6 +383,149 @@ library(forecast)
 fit_auto <- auto.arima(ts_data)
 \end{lstlisting}
 
+\section{LSTM Modeling Code}\label{appendix:lstm_modeling_code}
+
+\begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:lstm_load_time_series]
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Create Training/Validation/Test Sets}, label=lst:lstm_split]
+h <- 14   # 14-day forecast (same as ARIMA)
+VAL_DAYS <- 30
+n <- nrow(data)
+test_end <- n
+test_start <- test_end - h
+val_end <- test_start
+val_start <- val_end - VAL_DAYS
+train_end <- val_start
+
+values <- matrix(data$avg_duration_min, ncol = 1)
+train_values <- values[1:train_end, , drop = FALSE]
+val_values <- values[val_start:(val_end - 1), , drop = FALSE]
+test_values <- values[test_start:(test_end - 1), , drop = FALSE]
+test_dates <- data$pickup_date[test_start:(test_end - 1)]
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Scaling}, label=lst:lstm_scaling]
+min_val <- min(train_values)
+max_val <- max(train_values)
+scale_fun <- function(x) (x - min_val) / (max_val - min_val)
+inv_scale_fun <- function(z) z * (max_val - min_val) + min_val
+
+train_scaled <- scale_fun(train_values)
+val_scaled <- scale_fun(val_values)
+test_scaled <- scale_fun(test_values)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Build Sliding Window Sequence}, label=lst:lstm_seq]
+SEQ_LEN <- 21
+
+create_sequences <- function(scaled_data, seq_len) {
+  X <- array(NA, dim = c(nrow(scaled_data) - seq_len, seq_len, 1))
+  y <- numeric(nrow(scaled_data) - seq_len)
+  for (i in seq_len(nrow(scaled_data) - seq_len)) {
+    ii <- i + seq_len - 1
+    X[i, , 1] <- scaled_data[i:ii, 1]
+    y[i] <- scaled_data[ii + 1, 1]
+  }
+  list(X = X, y = y)
+}
+
+train_val_scaled <- rbind(train_scaled, val_scaled)
+seqs <- create_sequences(train_val_scaled, SEQ_LEN)
+X_train <- seqs$X
+y_train <- seqs$y
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={LSTM Model}, label=lst:lstm_model]
+library(keras)
+
+inputs <- layer_input(shape = c(SEQ_LEN, 1))
+outputs <- inputs %>%
+  layer_lstm(units = 32, return_sequences = FALSE) %>%
+  layer_dropout(rate = 0.2) %>%
+  layer_dense(units = 1)
+model <- keras_model(inputs, outputs)
+
+model$compile(
+  optimizer = optimizer_adam(),
+  loss = "mse"
+)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Training the LSTM Model}, label=lst:lstm_training]
+library(tensorflow)
+# Use 20% of training sequences as validation for early stopping
+val_idx <- sample(length(y_train), size = round(0.2 * length(y_train)))
+x_val <- X_train[val_idx, , , drop = FALSE]
+y_val <- y_train[val_idx]
+x_fit <- X_train[-val_idx, , , drop = FALSE]
+y_fit <- y_train[-val_idx]
+
+np <- reticulate::import("numpy")
+x_fit_tf <- tf$constant(np$array(x_fit, dtype = np$float32))
+y_fit_tf <- tf$constant(np$array(y_fit, dtype = np$float32))
+x_val_tf <- tf$constant(np$array(x_val, dtype = np$float32))
+y_val_tf <- tf$constant(np$array(y_val, dtype = np$float32))
+
+history <- model$fit(
+  x_fit_tf, y_fit_tf,
+  epochs = 100L,
+  batch_size = 16L,
+  validation_data = list(x_val_tf, y_val_tf),
+  callbacks = list(
+    callback_early_stopping(monitor = "val_loss", patience = 15, restore_best_weights = TRUE)
+  ),
+  verbose = 1
+)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={14-Day LSTM Forecast}, label=lst:lstm_forecast]
+last_seq <- values[(test_start - SEQ_LEN):(test_start - 1), , drop = FALSE]
+last_seq_scaled <- scale_fun(last_seq)
+forecast_scaled <- numeric(HORIZON)
+current <- last_seq_scaled
+
+for (h in seq_len(HORIZON)) {
+  x_h <- array(current, dim = c(1, SEQ_LEN, 1))
+  pred <- model$predict(x_h, verbose = 0L)
+  forecast_scaled[h] <- as.numeric(pred)[1]
+  current <- rbind(current[-1, , drop = FALSE], pred[1, 1])
+}
+
+forecast <- inv_scale_fun(forecast_scaled)
+forecast_df <- data.frame(
+  date = test_dates,
+  actual = as.numeric(test_values),
+  forecast = forecast
+)
+forecast_df
+
+out_path <- file.path(getwd(), "../data", "lstm_forecast_14day.csv")
+write.csv(forecast_df, out_path, row.names = FALSE)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={LSTM Model Evaluation}, label=lst:lstm_eval]
+library(Metrics)
+library(yardstick)
+
+mae_train <- mean(abs(diff(as.numeric(train_values))))
+# Metrics::smape returns proportion; * 100 for percentage
+lstm_smape <- Metrics::smape(forecast_df$actual, forecast_df$forecast) * 100
+lstm_mase <- yardstick::mase_vec(
+  truth = forecast_df$actual,
+  estimate = forecast_df$forecast,
+  m = 1,
+  mae_train = mae_train
+)
+
+cat("LSTM sMAPE (%):", round(lstm_smape, 4), "\n")
+cat("LSTM MASE:", round(lstm_mase, 4), "\n")
+\end{lstlisting}
+
+\section{Forecast Tables}\label{appendix:forecast_tables}
 
 %=============================================================================
 \bibliographystyle{plain}
