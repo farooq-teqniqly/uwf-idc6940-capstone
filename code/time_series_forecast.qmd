@@ -14,7 +14,7 @@ data <- data[order(data$pickup_date), ]
 h <- 14          # 14-day forecast (same period as LSTM for comparison)
 VAL_DAYS <- 30   # match LSTM: 30 validation + 14 test held out
 ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
-# Training series: same as LSTM (first 322 days; then 30 val + 14 test)
+# Training series: same as LSTM (first 322 days; then 30 validation + 14 test)
 n_train <- nrow(data) - VAL_DAYS - h
 ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
 ```

@@ -1,0 +1,76 @@
+---
+title: "Capstone"
+author: "Farooq Mahmud"
+format: pdf
+editor: source
+---
+
+## Load time series
+
+```{r}
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
+
+h <- 14          # 14-day forecast (same period as LSTM for comparison)
+VAL_DAYS <- 30   # match LSTM: 30 validation + 14 test held out
+
+ts_data <- ts(data$avg_duration_min, frequency = 366, start = c(2024, 1))
+
+# Training series: same as LSTM (first 322 days; then 30 validation + 14 test)
+n_train <- nrow(data) - VAL_DAYS - h
+ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
+```
+
+## Model Selection
+```{r}
+library(forecast)
+auto_fit <- auto.arima(ts_data_train)
+```
+
+## 14-Day Forecast
+```{r}
+# Forecast 44 steps (validation + test) so last 14 match LSTM test period
+forecast_result <- forecast(auto_fit, h = VAL_DAYS + h)
+```
+
+## Table of Forecasted Values
+```{r}
+# Same 14-day period as LSTM (last 14 days of 2024) for fair comparison
+forecast_full <- as.data.frame(forecast_result)
+# Use last 14 of the 44-step forecast (steps 31:44 = LSTM test period)
+forecast_summary <- forecast_full[(VAL_DAYS + 1):(VAL_DAYS + h), ]
+forecast_dates <- data$pickup_date[(nrow(data) - h + 1):nrow(data)]
+
+# Save forecast to CSV for comparison with LSTM
+arima_forecast_df <- data.frame(
+  date = forecast_dates,
+  actual = data$avg_duration_min[(nrow(data) - h + 1):nrow(data)],
+  forecast = formatted_forecast$`Point Forecast`
+)
+
+write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
+```
+
+## Evaluation: sMAPE and MASE
+
+```{r}
+library(Metrics)
+library(yardstick)
+
+train_vals <- data$avg_duration_min[1:n_train]
+mae_train <- mean(abs(diff(train_vals)))
+
+# Metrics::smape returns proportion; multiply by 100 for percentage
+arima_smape <- Metrics::smape(arima_forecast_df$actual, arima_forecast_df$forecast) * 100
+
+arima_mase <- yardstick::mase_vec(
+  truth = arima_forecast_df$actual,
+  estimate = arima_forecast_df$forecast,
+  m = 1,
+  mae_train = mae_train
+)
+
+cat("ARIMA sMAPE (%):", round(arima_smape, 4), "\n")
+cat("ARIMA MASE:", round(arima_mase, 4), "\n")
+```
