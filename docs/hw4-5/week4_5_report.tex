@@ -97,7 +97,7 @@ The primary data source used in the capstone is the CSV file explained in ~\ref{
 
 \subsection{Access and Loading}
 
-The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_series}) The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in the capstone repo (e.g.\ \texttt{code/data/finalproject.csv} or \texttt{docs/hw4-5/data/finalproject.csv}); the same file is used by both ARIMA (in the prior R/Quarto pipeline) and LSTM (\texttt{lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
+The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_series}) The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in \texttt{data/time\_series.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
 
 \begin{table}[ht]
 \centering
@@ -122,24 +122,24 @@ The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_
 
 \subsection{What Was Implemented}
 
-\paragraph{Preprocessing (\texttt{capstone\_project\_preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
+\paragraph{Preprocessing (\texttt{code/preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
 
-\paragraph{ARIMA (\texttt{time\_series\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing ~\ref{lst:load_time_series}) and uses the same chronological split as LSTM--- last 14 days as test, preceding 30 as validation, remainder as training (Listing ~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing ~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing ~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{arima\_forecast\_14day.csv} for comparison with LSTM (Listing ~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:time_series_eval}).
+\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing ~\ref{lst:load_time_series}) and uses the same chronological split as LSTM--- last 14 days as test, preceding 30 as validation, remainder as training (Listing ~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing ~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing ~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing ~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:time_series_eval}).
 
-\paragraph{LSTM (\texttt{lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing ~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing ~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing ~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing ~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively--- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{lstm\_forecast\_14day.csv} for comparsion to the ARIMA model (Listing ~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:lstm_eval}).
+\paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing ~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing ~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing ~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing ~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively--- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparsion to the ARIMA model (Listing ~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:lstm_eval}).
 
 
 \subsection{What Was Tested}
 
-The dataset \texttt{finalproject.csv} contains the average trip duration in minutes for the 366 days of 2024. For LSTM, the series is split chronologically--- the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. The same 14-day test window is used for evaluation so that ARIMA and LSTM can be compared on the same dates. The target variable is \texttt{avg\_duration\_min} (daily average trip duration in minutes).
+The dataset \texttt{data/time\_series.csv} contains the average trip duration in minutes for the 366 days of 2024. For LSTM, the series is split chronologically--- the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. The same 14-day test window is used for evaluation so that ARIMA and LSTM can be compared on the same dates. The target variable is \texttt{avg\_duration\_min} (daily average trip duration in minutes).
 
 \subsection{What Worked and What Did Not}
 
-ARIMA fitting and 14-day forecasting run successfully with the chosen specification. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. Three limitations were encountered: (i)~small sample size (366 points) limits LSTM capacity and favors simpler models, (ii)~hyperparameters (sequence length, units, dropout) were chosen pragmatically and could be refined, and (iii)~alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
+ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. Three limitations were encountered: (i)~small sample size (366 points) limits LSTM capacity and favors simpler models, (ii)~hyperparameters (sequence length, units, dropout) were chosen pragmatically and could be refined, and (iii)~alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
 
 \subsection{Preliminary Outputs}
 
-Forecast tables for both models are shown in Appendix ~\ref{appendix:forecast_tables}.
+Forecast tables for both models are shown in Appendix ~\ref{appendix:forecast_tables}. The complete output of the ARIMA and LSTM qmd files are in \texttt{code/arima\_forecast\_qmd\_output.pdf} and \texttt{code/lstm\_forecast\_qmd\_output.pdf} respectively. 
 
 %=============================================================================
 \section{Results (Preliminary)}
@@ -151,7 +151,7 @@ Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the
 
 \begin{table}[ht]
 \centering
-\caption{Comparison of ARIMA and LSTM on 14-day forecast (sMAPE and MASE). Replace with output from \texttt{compare\_forecasts.py}.}
+\caption{Comparison of ARIMA and LSTM on 14-day forecast (sMAPE and MASE).}
 \label{tab:compare}
 \begin{tabular}{lcc}
 \toprule
