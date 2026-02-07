@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "../uwf-sta6856"
+		},
+		{
+			"path": "../uwf-idc6940-capstone-files"
 		}
 	],
 	"settings": {}
