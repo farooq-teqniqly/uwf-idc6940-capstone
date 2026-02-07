@@ -15,7 +15,7 @@ editor: source
 ## Load the data
 
 ```{r}
-data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data <- read.csv(file.path(getwd(), "../data", "time_series.csv"))
 data$pickup_date <- as.Date(data$pickup_date)
 data <- data[order(data$pickup_date), ]
 rownames(data) <- NULL
