@@ -175,10 +175,9 @@ Limitations of the methods include: (i)~\textbf{Small sample size}-366 daily obs
 %=============================================================================
 
 \begin{enumerate}
-  \item \textbf{Stabilize LSTM reporting.} When reporting final metrics, either fix the random seed in the LSTM pipeline and re-run once, or run multiple times and report mean and spread of sMAPE/MASE so the comparison with ARIMA is interpretable.
-  \item \textbf{Refine LSTM hyperparameters.} Optionally explore sequence length, number of units, dropout, and training epochs (e.g., via a small grid search or validation-based tuning) and document the choices in the final report.
+  \item \textbf{Stabilize LSTM reporting.} When reporting final metrics, either fix the random seed in the LSTM pipeline and re-run once, or run multiple times and report mean and standard deviation of sMAPE/MASE so the comparison with ARIMA is interpretable.
+  \item \textbf{Refine LSTM hyperparameters.} Optionally explore sequence length, number of units, dropout, and training epochs and document the choices in the final report.
   \item \textbf{Extend data if available.} If additional years of NYC TLC data become accessible, extend the daily series to improve LSTM training and reassess both methods.
-  \item \textbf{Finalize and submit.} Export the report to PDF, ensure all placeholders are replaced and the document is ready for submission.
 \end{enumerate}
 
 %=============================================================================
