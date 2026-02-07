@@ -81,11 +81,11 @@ The first forecasting method is an ARIMA model fitted to the time-series. The AR
 The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
 
 \paragraph{Comparison.}
-Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE) and one figure (actual vs both forecasts over the 14 days).
+Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE).
 
 \subsection{Evaluation Plan}
 
-Metrics are sMAPE and MASE over the 14-day forecast \cite{hyndman2006,prabhat2024}. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. The same test period is used for both methods. Results are presented in a table (ARIMA vs LSTM: sMAPE, MASE) and a figure (actual vs both forecasts over the 14 days).
+Metrics are sMAPE and MASE over the 14-day forecast \cite{hyndman2006,prabhat2024}. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. The same test period is used for both methods. Results are presented in a table (ARIMA vs LSTM: sMAPE, MASE).
 
 %=============================================================================
 \section{Dataset and Access}
@@ -147,7 +147,7 @@ Forecast tables for both models are shown in Appendix ~\ref{appendix:forecast_ta
 
 \subsection{Comparison (ARIMA vs LSTM)}\label{sec:results-compare}
 
-Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. A figure (actual vs ARIMA vs LSTM) illustrates the forecasts.
+Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period.
 
 \begin{table}[ht]
 \centering
@@ -168,7 +168,18 @@ LSTM  & 5.7286 & 1.4602 \\
 \section{Issues and Limitations}
 %=============================================================================
 
-Limitations of the methods include: (i)~\textbf{Small sample size}-366 daily observations is on the small side for deep learning. The LSTM has limited training sequences after the chronological split, which may favor the simpler ARIMA model. (ii)~\textbf{Univariate models}-both methods use only the daily average trip duration. (iii)~\textbf{Alignment of evaluation period}-for a fair comparison, ARIMA and LSTM must forecast the same 14-day window. (iv)~\textbf{Library code changes}-if the sMAPE and MASE library code changes, the calculated metrics could change. (v)~\textbf{LSTM forecast values}-it was observed that the LSTM forecasted values could change from run to run (which change the sMAPE and MASE values), unlike the ARIMA forecasted values, which remained stable. 
+Limitations of the methods include: (i)~\textbf{Small sample size}-366 daily observations is on the small side for deep learning. The LSTM has limited training sequences after the chronological split, which may favor the simpler ARIMA model. (ii)~\textbf{Univariate models}-both methods use only the daily average trip duration. (iii)~\textbf{Alignment of evaluation period}-for a fair comparison, ARIMA and LSTM must forecast the same 14-day window. (iv)~\textbf{Library code changes}-if the sMAPE and MASE library code changes, the calculated metrics could change. (v)~\textbf{LSTM forecast values}-it was observed that the LSTM forecasted values could change from run to run (which change the sMAPE and MASE values), unlike the ARIMA forecasted values, which remained stable.
+
+%=============================================================================
+\section{Next Steps}
+%=============================================================================
+
+\begin{enumerate}
+  \item \textbf{Stabilize LSTM reporting.} When reporting final metrics, either fix the random seed in the LSTM pipeline and re-run once, or run multiple times and report mean and spread of sMAPE/MASE so the comparison with ARIMA is interpretable.
+  \item \textbf{Refine LSTM hyperparameters.} Optionally explore sequence length, number of units, dropout, and training epochs (e.g., via a small grid search or validation-based tuning) and document the choices in the final report.
+  \item \textbf{Extend data if available.} If additional years of NYC TLC data become accessible, extend the daily series to improve LSTM training and reassess both methods.
+  \item \textbf{Finalize and submit.} Export the report to PDF, ensure all placeholders are replaced and the document is ready for submission.
+\end{enumerate}
 
 %=============================================================================
 \appendix
