@@ -1,0 +1,108 @@
+%=============================================================================
+% Week 4-5 Report Bibliography (placeholders and key references)
+%=============================================================================
+
+@misc{nyctlc2024,
+  author       = {{New York City Taxi and Limousine Commission}},
+  title        = {TLC Trip Record Data},
+  year         = {2024},
+  howpublished = {\url{https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page}},
+  note         = {Accessed 2025}
+}
+
+@article{tandon2024congestion,
+  title        = {NYC's Ride-Hailing Fee Failed to Ease Manhattan Traffic, New NYU Tandon Study Reveals},
+  author       = {Tandon School of Engineering},
+  year         = {2024},
+  journal      = {NYU Tandon News},
+  note         = {Accessed 2025},
+  url          = {https://engineering.nyu.edu/news/nycs-ride-hailing-fee-failed-ease-manhattan-traffic-new-nyu-tandon-study-reveals}
+}
+
+@article{ma2024congestion,
+  title        = {Congestion-Aware Electric Vehicle Scheduling for Ride-Hailing Fleets},
+  author       = {Ma, Jiaying and Zhou, Wei and Wang, Fan and others},
+  journal      = {arXiv preprint arXiv:2412.09978},
+  year         = {2024},
+  url          = {https://arxiv.org/abs/2412.09978}
+}
+
+@article{prabhat2024,
+  author       = {Prabhat Kumar and Satyam Verma and Manoj Varma and Kaushal Kumar Yadav and Ankit Kumar Singh},
+  title        = {Comparative analysis of time series forecasting: Traditional Statistical Approaches vs. Machine Learning Methods},
+  journal      = {International Journal of Agriculture Extension and Social Development},
+  volume       = {7},
+  number       = {9},
+  pages        = {192--198},
+  year         = {2024},
+  month        = {September},
+  doi          = {10.33545/26180723.2024.v7.i9c.1054}
+}
+
+@article{makridakis2018,
+  author       = {Makridakis, Spyros and Spiliotis, Evangelos and Assimakopoulos, Vassilios},
+  title        = {Statistical and Machine Learning forecasting methods: Comparisons and ways forward},
+  journal      = {Journal of Forecasting},
+  volume       = {37},
+  number       = {1},
+  pages        = {1--28},
+  year         = {2018},
+  doi          = {10.1002/for.2504}
+}
+
+@article{hyndman2006,
+  author       = {Hyndman, Rob J. and Koehler, Anne B.},
+  title        = {Another look at measures of forecast accuracy},
+  journal      = {International Journal of Forecasting},
+  volume       = {22},
+  number       = {4},
+  pages        = {679--688},
+  year         = {2006},
+  doi          = {10.1016/j.ijforecast.2006.03.001},
+  note         = {MASE definition}
+}
+
+@misc{forecast_auto_arima,
+  author       = {{RDocumentation}},
+  title        = {auto.arima: Fit best {ARIMA} model to univariate time series},
+  year         = {2024},
+  howpublished = {\url{https://www.rdocumentation.org/packages/forecast/versions/9.0.0/topics/auto.arima}},
+  note         = {forecast package for R; model selection by AIC, AICc, or BIC. Accessed 2025}
+}
+
+%-----------------------------------------------------------------------------
+% Code attributions (lstm_forecast.qmd). Prior ARIMA work (STA6856) is used
+% via excerpts in the narrative only; not cited in the capstone report.
+%-----------------------------------------------------------------------------
+
+@misc{keras_timeseries,
+  author       = {{Keras Team}},
+  title        = {Timeseries forecasting},
+  year         = {2024},
+  howpublished = {\url{https://keras.io/examples/timeseries/}},
+  note         = {LSTM design (sequence construction, scaling, recursive forecast) follows Keras time-series patterns. Accessed 2025}
+}
+
+@misc{keras_r,
+  author       = {Allaire, J.J. and Chollet, F. and others},
+  title        = {keras: R Interface to Keras},
+  year         = {2024},
+  howpublished = {\url{https://keras.rstudio.com/}},
+  note         = {R interface for LSTM implementation. Accessed 2025}
+}
+
+@misc{statology_smape_r,
+  author       = {Bobbitt, Zach},
+  title        = {How to Calculate SMAPE in R},
+  year         = {2021},
+  howpublished = {\url{https://www.statology.org/smape-in-r/}},
+  note         = {Statology. Metrics package \texttt{smape()} and formula. Accessed 2025}
+}
+
+@misc{yardstick_mase,
+  author       = {Kuhn, Max and Vaughan, Davis and Hvitfeldt, Emil},
+  title        = {Mean absolute scaled error (\texttt{mase})},
+  year         = {2024},
+  howpublished = {\url{https://yardstick.tidymodels.org/reference/mase.html}},
+  note         = {yardstick: Tidy Modeling of R. \texttt{mase\_vec()} with \texttt{mae\_train}. Accessed 2025}
+}

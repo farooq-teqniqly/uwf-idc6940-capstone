@@ -1,0 +1,553 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{parskip}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks,linkcolor=blue,citecolor=blue]{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+
+\lstdefinestyle{pystyle}{
+    language=Python,
+    basicstyle=\ttfamily\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{teal},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    frame=single,
+    breaklines=true
+}
+
+\graphicspath{{./images/},{../../images/}}
+
+\title{Week 4--5 Progress Report: Methods, Data, and Implementation}
+\author{Farooq Mahmud}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\clearpage
+
+%=============================================================================
+\section{Project Goal and Research Question}
+%=============================================================================
+
+\subsection{Goal}
+
+The goal of this capstone project is to develop and evaluate forecasting methods for daily average Uber trip duration in New York City. This capstone compares an ARIMA approach with an LSTM model on the same dataset \cite{nyctlc2024}. The aim is to produce a 14-day forecast from each method and to assess both using sMAPE and MASE metrics \cite{hyndman2006,prabhat2024}.
+
+\subsection{Research Question}
+
+How do ARIMA and LSTM compare for 14-day forecasting of daily average Uber trip duration in New York City when evaluated on sMAPE and MASE?
+
+%=============================================================================
+\section{Expanded Methods}
+%=============================================================================
+
+\subsection{Problem Definition}
+
+This capstone predicts daily average Uber trip duration (in minutes) in New York City. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 (2024 was a leap year) daily observations. The outputs are (1) a 14-day point forecast of average trip duration from each method (ARIMA and LSTM), and (2) for comparison, the same horizon evaluated with sMAPE and MASE \cite{hyndman2006,prabhat2024} over a common 14-day period.
+
+\subsection{Data Description}
+
+The data are daily average Uber trip duration (in minutes) for New York City in 2024, derived from the New York City Taxi and Limousine Commission (TLC) High-Volume FHV trip record data \cite{nyctlc2024}. Key variables are \texttt{pickup\_date} and \texttt{avg\_duration\_min}. The preprocessed time-series has 366 daily observations. Preprocessing is done via PySpark aggregation to daily averages.
+
+\subsection{Preprocessing Plan} \label{sec:preprocessing}
+
+The following preprocessing is common to both modeling methods and produces the single daily time series (\texttt{pickup\_date}, \texttt{avg\_duration\_min}) that both ARIMA and LSTM use. It was applied to the NYC TLC High-Volume FHV trip record data \cite{nyctlc2024}. The PySpark code is given in Appendix~\ref{appendix:pyspark}. Preprocessing is necessary because the original dataset contains over 200 million trip records, of which about 179 million are Uber trip records. Outliers and invalid or nonsensical data are also removed resulting in a final total of about 159 million rows. These rows are converted to a CSV file representing the time-series. The CSV contains the 366 daily average trip duration (minutes) for 2024, produced by aggregating trip-level records (via PySpark) to one row per day.
+
+\begin{enumerate}
+\item \textbf{Filter to Uber trips.} Retain only records with \texttt{hvfhs\_license\_num} equal to \texttt{HV0003} (Uber).
+\item \textbf{Derived columns.} Compute trip duration in minutes (\texttt{trip\_time}/60) and average speed in mph (\texttt{trip\_miles}/(\texttt{trip\_time}/3600)).
+\item \textbf{Basic cleaning.} Remove trips with zero or negative duration, distance, or speed. Remove obvious outliers: trip duration outside 1--120 minutes, trip distance outside 0.1--100 miles, average speed outside 1--80 mph.
+\item \textbf{IQR-based outlier removal.} For \texttt{trip\_duration\_min}, \texttt{trip\_miles}, and \texttt{avg\_speed\_mph}, compute the interquartile range (IQR) and drop trips above $Q_3 + 1.5 \times \text{IQR}$ for each variable.
+\item \textbf{Aggregation.} Group by \texttt{pickup\_date} (date of \texttt{pickup\_datetime}), compute the mean trip duration per day (\texttt{avg\_duration\_min}), order by date, and round the average. The result is one row per day (366 days for 2024).
+\item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points (listing ~\ref{lst:load_time_series}). No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
+\end{enumerate}
+
+\subsection{Modeling Plan}
+
+\paragraph{ARIMA.}
+The first forecasting method is an ARIMA model fitted to the time-series. The ARIMA model is created using the \texttt{auto.arima} function in R. This function combines stationarity testing (Augmented Dickey--Fuller test) and chooses the best model based on AIC and BIC \cite{forecast_auto_arima}. The code is shown in listing ~\ref{lst:arima_model}.
+
+\paragraph{LSTM.}
+The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
+
+\paragraph{Comparison.}
+Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE).
+
+\subsection{Evaluation Plan}
+
+Metrics are sMAPE and MASE over the 14-day forecast \cite{hyndman2006,prabhat2024}. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. The same test period is used for both methods. Results are presented in a table (ARIMA vs LSTM: sMAPE, MASE).
+
+%=============================================================================
+\section{Dataset and Access}
+%=============================================================================
+
+\subsection{Source}
+
+The primary data source used in the capstone is the CSV file explained in ~\ref{sec:preprocessing}.
+
+\subsection{Access and Loading}
+
+The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_series}) The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in \texttt{data/time\_series.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
+
+\begin{table}[ht]
+\centering
+\caption{First five rows of the CSV (pickup\_date, avg\_duration\_min, weekday).}
+\label{tab:csv_preview}
+\begin{tabular}{lcr}
+\toprule
+\texttt{pickup\_date} & \texttt{avg\_duration\_min} & \texttt{weekday} \\
+\midrule
+2024-01-01 & 18 & Monday \\
+2024-01-02 & 18 & Tuesday \\
+2024-01-03 & 18 & Wednesday \\
+2024-01-04 & 18 & Thursday \\
+2024-01-05 & 18 & Friday \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%=============================================================================
+\section{Implementation and Experiments}
+%=============================================================================
+
+\subsection{What Was Implemented}
+
+\paragraph{Preprocessing (\texttt{code/preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
+
+\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing ~\ref{lst:load_time_series}) and uses the same chronological split as LSTM- last 14 days as test, preceding 30 as validation, remainder as training (Listing ~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing ~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing ~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing ~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:time_series_eval}).
+
+\paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing ~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing ~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing ~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing ~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparsion to the ARIMA model (Listing ~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:lstm_eval}).
+
+
+\subsection{What Was Tested}
+
+The dataset \texttt{data/time\_series.csv} contains the average trip duration in minutes for the 366 days of 2024. For LSTM, the series is split chronologically- the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. The same 14-day test window is used for evaluation so that ARIMA and LSTM can be compared on the same dates. The target variable is \texttt{avg\_duration\_min} (daily average trip duration in minutes).
+
+\subsection{What Worked and What Did Not}
+
+ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. Three limitations were encountered: (i)~small sample size (366 points) limits LSTM capacity and favors simpler models, (ii)~hyperparameters (sequence length, units, dropout) were chosen pragmatically and could be refined, and (iii)~alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
+
+\subsection{Preliminary Outputs}
+
+Forecast tables for both models are shown in Appendix ~\ref{appendix:forecast_tables}. The complete output of the ARIMA and LSTM qmd files are in \texttt{code/arima\_forecast\_qmd\_output.pdf} and \texttt{code/lstm\_forecast\_qmd\_output.pdf} respectively. 
+
+%=============================================================================
+\section{Results (Preliminary)}
+%=============================================================================
+
+\subsection{Comparison (ARIMA vs LSTM)}\label{sec:results-compare}
+
+Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period.
+
+\begin{table}[ht]
+\centering
+\caption{Comparison of ARIMA and LSTM on 14-day forecast (sMAPE and MASE).}
+\label{tab:compare}
+\begin{tabular}{lcc}
+\toprule
+Model & sMAPE (\%) & MASE \\
+\midrule
+ARIMA & 7.5833  & 1.9344  \\
+LSTM  & 5.7286 & 1.4602 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+%=============================================================================
+\section{Issues and Limitations}
+%=============================================================================
+
+Limitations of the methods include: (i)~\textbf{Small sample size}-366 daily observations is on the small side for deep learning. The LSTM has limited training sequences after the chronological split, which may favor the simpler ARIMA model. (ii)~\textbf{Univariate models}-both methods use only the daily average trip duration. (iii)~\textbf{Alignment of evaluation period}-for a fair comparison, ARIMA and LSTM must forecast the same 14-day window. (iv)~\textbf{Library code changes}-if the sMAPE and MASE library code changes, the calculated metrics could change. (v)~\textbf{LSTM forecast values}-it was observed that the LSTM forecasted values could change from run to run (which change the sMAPE and MASE values), unlike the ARIMA forecasted values, which remained stable.
+
+%=============================================================================
+\section{Next Steps}
+%=============================================================================
+
+\begin{enumerate}
+  \item \textbf{Stabilize LSTM reporting.} When reporting final metrics, either fix the random seed in the LSTM pipeline and re-run once, or run multiple times and report mean and standard deviation of sMAPE/MASE so the comparison with ARIMA is interpretable.
+  \item \textbf{Refine LSTM hyperparameters.} Optionally explore sequence length, number of units, dropout, and training epochs and document the choices in the final report.
+  \item \textbf{Extend data if available.} If additional years of NYC TLC data become accessible, extend the daily series to improve LSTM training and reassess both methods.
+\end{enumerate}
+
+%=============================================================================
+\appendix
+%=============================================================================
+
+\section{Download Instructions}
+\label{sec:downloads}
+
+The dataset, QMD files, PySpark notebook, and outputs are also available for download via a public GitHub release at \url{https://github.com/farooq-teqniqly/uwf-idc6940-capstone-files/releases/tag/capstone-v0.1}
+
+Download and extract the ZIP file to access the CSV dataset and the code.
+
+
+\section{PySpark Preprocessing Code}\label{appendix:pyspark}
+
+The following PySpark script was used to preprocess the NYC TLC High-Volume FHV trip record data and compute the average daily trip durations that feed the time series (see Section~\ref{sec:preprocessing}). The code is taken from \texttt{code/capstone\_project\_preprocessing.ipynb}.
+
+First, PySpark is installed, a Spark session is created, and the parquet data are loaded (Listing~\ref{lst:pyspark_load}).
+
+\begin{lstlisting}[style=pystyle, caption={Spark session and loading FHV data from parquet}, label=lst:pyspark_load]
+!pip install pyspark
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.master("local[*]").appName("capstone-project").getOrCreate()
+
+data_directory = "/content/drive/MyDrive/datasets/nyc-taxi/"
+df = spark.read.format("parquet").option("recursiveFileLookup", "true").load(data_directory)
+print(f"Row count: {df.count()}")
+\end{lstlisting}
+
+Only Uber trips are retained (Listing~\ref{lst:pyspark_uber}).
+
+\begin{lstlisting}[style=pystyle, caption={Filter to Uber trips}, label=lst:pyspark_uber]
+df = df.filter(df["hvfhs_license_num"] == "HV0003")
+print(f"Uber trip count: {df.count()}")
+\end{lstlisting}
+
+Derived columns are added for trip duration in minutes and average speed (Listing~\ref{lst:pyspark_derived_cols}).
+
+\begin{lstlisting}[style=pystyle, caption={Deriving trip duration and average speed columns}, label=lst:pyspark_derived_cols]
+from pyspark.sql.functions import col
+
+df = df.withColumn("trip_duration_min", col("trip_time") / 60)
+df = df.withColumn("avg_speed_mph", (col("trip_miles") / (col("trip_time") / 3600)))
+\end{lstlisting}
+
+The data are cleaned (Listing~\ref{lst:pyspark_cleaning}): trips with zero or negative duration, distance, or speed are removed; then trips outside the ranges 1--120 minutes, 0.1--100 miles, and 1--80 mph are removed.
+
+\begin{lstlisting}[style=pystyle, caption={Data cleaning}, label=lst:pyspark_cleaning]
+df_clean = df.filter(
+    (col("trip_duration_min") > 0) &
+    (col("trip_miles") > 0) &
+    (col("avg_speed_mph") > 0)
+)
+
+df_clean = df_clean.filter(
+    (col("trip_duration_min") <= 120) &
+    (col("trip_duration_min") >= 1) &
+    (col("trip_miles") <= 100) &
+    (col("trip_miles") >= 0.1) &
+    (col("avg_speed_mph") <= 80) &
+    (col("avg_speed_mph") >= 1)
+)
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[style=pystyle, caption={IQR-based outlier removal}, label=lst:pyspark_outliers]
+columns_to_check = ["trip_duration_min", "trip_miles", "avg_speed_mph"]
+iqr_dict = {}
+
+for col_name in columns_to_check:
+    q1, q3 = df_clean.approxQuantile(col_name, [0.25, 0.75], 0.01)
+    iqr = q3 - q1
+    iqr_dict[col_name] = (q1, q3, iqr)
+    print(f"IQR for {col_name}: {iqr_dict[col_name][2]}")
+    print(f"  Q1 for {col_name}: {iqr_dict[col_name][0]}")
+    print(f"  Q3 for {col_name}: {iqr_dict[col_name][1]}")
+
+iqr_duration = iqr_dict["trip_duration_min"][2]
+iqr_miles = iqr_dict["trip_miles"][2]
+iqr_speed = iqr_dict["avg_speed_mph"][2]
+
+iqr_factor = 1.5
+
+iqr_duration_15 = iqr_factor * iqr_duration
+iqr_miles_15 = iqr_factor * iqr_miles
+iqr_speed_15 = iqr_factor * iqr_speed
+
+duration_upper = iqr_dict["trip_duration_min"][1] + iqr_duration_15
+miles_upper = iqr_dict["trip_miles"][1] + iqr_miles_15
+speed_upper = iqr_dict["avg_speed_mph"][1] + iqr_speed_15
+
+df_final = df_clean.filter(
+    (col("trip_duration_min") <= duration_upper) &
+    (col("trip_miles") <= miles_upper) &
+    (col("avg_speed_mph") <= speed_upper)
+)
+\end{lstlisting}
+
+The \texttt{pickup\_date} column is added and the average trip duration per day is computed on the cleaned Uber data (Listing~\ref{lst:pyspark_avg_duration}).
+
+\begin{lstlisting}[style=pystyle, caption={Add pickup date and calculate average daily duration}, label=lst:pyspark_avg_duration]
+from pyspark.sql.functions import to_date
+
+df_final = df_final.withColumn("pickup_date", to_date(col("pickup_datetime")))
+
+from pyspark.sql.functions import avg, round
+
+df_daily_avg = df_final.groupBy("pickup_date") \
+                   .agg(avg("trip_duration_min").alias("avg_duration_min")) \
+                   .orderBy("pickup_date")
+
+df_daily_avg = df_daily_avg.withColumn("avg_duration_min", round("avg_duration_min"))
+\end{lstlisting}
+
+Finally, the time series is written to a single CSV file (Listing~\ref{lst:pyspark_csv}) with two columns: \texttt{pickup\_date} and \texttt{avg\_duration\_min}.
+
+\begin{lstlisting}[style=pystyle, caption={Saving time series to CSV}, label=lst:pyspark_csv]
+final_path = "/content/drive/MyDrive/datasets/fhvhv_tripdata_2024_uber_timeseries.csv"
+
+df_daily_avg.select("pickup_date", "avg_duration_min") \
+         .coalesce(1) \
+         .write.option("header", True) \
+         .mode("overwrite") \
+         .csv(final_path)
+\end{lstlisting}
+
+\section{Time-series Modeling Code}\label{appendix:time_series_modeling_code}
+
+\begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:load_time_series]
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Create Training Time Series}, label=lst:training_time_series]
+
+h <- 14          # 14-day forecast (same period as LSTM for comparison)
+VAL_DAYS <- 30   # match LSTM: 30 validation + 14 test held out
+
+# Training series: same as LSTM (first 322 days; then 30 validation + 14 test)
+n_train <- nrow(data) - VAL_DAYS - h
+ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={14-day Forecast}, label=lst:time_series_forecast]
+forecast_result <- forecast(auto_fit, h = VAL_DAYS + h)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={14-day Forecast}, label=lst:save_ts_forecast]
+# Same 14-day period as LSTM (last 14 days of 2024) for fair comparison
+forecast_full <- as.data.frame(forecast_result)
+# Use last 14 of the 44-step forecast (steps 31:44 = LSTM test period)
+forecast_summary <- forecast_full[(VAL_DAYS + 1):(VAL_DAYS + h), ]
+forecast_dates <- data$pickup_date[(nrow(data) - h + 1):nrow(data)]
+
+# Save forecast to CSV for comparison with LSTM
+
+formatted_forecast <- cbind(Date = forecast_dates, forecast_summary)
+
+formatted_forecast <- within(formatted_forecast, {
+  `Point Forecast` <- round(`Point Forecast`, 2)
+  `Lo 80` <- round(`Lo 80`, 2)
+  `Hi 80` <- round(`Hi 80`, 2)
+  `Lo 95` <- round(`Lo 95`, 2)
+  `Hi 95` <- round(`Hi 95`, 2)
+})
+
+arima_forecast_df <- data.frame(
+  date = forecast_dates,
+  actual = data$avg_duration_min[(nrow(data) - h + 1):nrow(data)],
+  forecast = formatted_forecast$`Point Forecast`
+)
+
+write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={ARIMA Model Evaluation}, label=lst:time_series_eval]
+library(Metrics)
+library(yardstick)
+
+train_vals <- data$avg_duration_min[1:n_train]
+mae_train <- mean(abs(diff(train_vals)))
+
+# Metrics::smape returns proportion; multiply by 100 for percentage
+arima_smape <- Metrics::smape(arima_forecast_df$actual, arima_forecast_df$forecast) * 100
+
+arima_mase <- yardstick::mase_vec(
+  truth = arima_forecast_df$actual,
+  estimate = arima_forecast_df$forecast,
+  m = 1,
+  mae_train = mae_train
+)
+
+cat("ARIMA sMAPE (%):", round(arima_smape, 4), "\n")
+cat("ARIMA MASE:", round(arima_mase, 4), "\n")
+\end{lstlisting}
+
+
+
+The \texttt{auto.arima} function is used to determine the best time-series model based on AIC and BIC.
+
+\begin{lstlisting}[style=pystyle, caption={ARIMA Model}, label=lst:arima_model]
+library(forecast)
+fit_auto <- auto.arima(ts_data)
+\end{lstlisting}
+
+\section{LSTM Modeling Code}\label{appendix:lstm_modeling_code}
+
+\begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:lstm_load_time_series]
+data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data$pickup_date <- as.Date(data$pickup_date)
+data <- data[order(data$pickup_date), ]
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Create Training/Validation/Test Sets}, label=lst:lstm_split]
+h <- 14   # 14-day forecast (same as ARIMA)
+VAL_DAYS <- 30
+n <- nrow(data)
+test_end <- n
+test_start <- test_end - h
+val_end <- test_start
+val_start <- val_end - VAL_DAYS
+train_end <- val_start
+
+values <- matrix(data$avg_duration_min, ncol = 1)
+train_values <- values[1:train_end, , drop = FALSE]
+val_values <- values[val_start:(val_end - 1), , drop = FALSE]
+test_values <- values[test_start:(test_end - 1), , drop = FALSE]
+test_dates <- data$pickup_date[test_start:(test_end - 1)]
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Scaling}, label=lst:lstm_scaling]
+min_val <- min(train_values)
+max_val <- max(train_values)
+scale_fun <- function(x) (x - min_val) / (max_val - min_val)
+inv_scale_fun <- function(z) z * (max_val - min_val) + min_val
+
+train_scaled <- scale_fun(train_values)
+val_scaled <- scale_fun(val_values)
+test_scaled <- scale_fun(test_values)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Build Sliding Window Sequence}, label=lst:lstm_seq]
+SEQ_LEN <- 21
+
+create_sequences <- function(scaled_data, seq_len) {
+  X <- array(NA, dim = c(nrow(scaled_data) - seq_len, seq_len, 1))
+  y <- numeric(nrow(scaled_data) - seq_len)
+  for (i in seq_len(nrow(scaled_data) - seq_len)) {
+    ii <- i + seq_len - 1
+    X[i, , 1] <- scaled_data[i:ii, 1]
+    y[i] <- scaled_data[ii + 1, 1]
+  }
+  list(X = X, y = y)
+}
+
+train_val_scaled <- rbind(train_scaled, val_scaled)
+seqs <- create_sequences(train_val_scaled, SEQ_LEN)
+X_train <- seqs$X
+y_train <- seqs$y
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={LSTM Model}, label=lst:lstm_model]
+library(keras)
+
+inputs <- layer_input(shape = c(SEQ_LEN, 1))
+outputs <- inputs %>%
+  layer_lstm(units = 32, return_sequences = FALSE) %>%
+  layer_dropout(rate = 0.2) %>%
+  layer_dense(units = 1)
+model <- keras_model(inputs, outputs)
+
+model$compile(
+  optimizer = optimizer_adam(),
+  loss = "mse"
+)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={Training the LSTM Model}, label=lst:lstm_training]
+library(tensorflow)
+# Use 20% of training sequences as validation for early stopping
+val_idx <- sample(length(y_train), size = round(0.2 * length(y_train)))
+x_val <- X_train[val_idx, , , drop = FALSE]
+y_val <- y_train[val_idx]
+x_fit <- X_train[-val_idx, , , drop = FALSE]
+y_fit <- y_train[-val_idx]
+
+np <- reticulate::import("numpy")
+x_fit_tf <- tf$constant(np$array(x_fit, dtype = np$float32))
+y_fit_tf <- tf$constant(np$array(y_fit, dtype = np$float32))
+x_val_tf <- tf$constant(np$array(x_val, dtype = np$float32))
+y_val_tf <- tf$constant(np$array(y_val, dtype = np$float32))
+
+history <- model$fit(
+  x_fit_tf, y_fit_tf,
+  epochs = 100L,
+  batch_size = 16L,
+  validation_data = list(x_val_tf, y_val_tf),
+  callbacks = list(
+    callback_early_stopping(monitor = "val_loss", patience = 15, restore_best_weights = TRUE)
+  ),
+  verbose = 1
+)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={14-Day LSTM Forecast}, label=lst:lstm_forecast]
+last_seq <- values[(test_start - SEQ_LEN):(test_start - 1), , drop = FALSE]
+last_seq_scaled <- scale_fun(last_seq)
+forecast_scaled <- numeric(HORIZON)
+current <- last_seq_scaled
+
+for (h in seq_len(HORIZON)) {
+  x_h <- array(current, dim = c(1, SEQ_LEN, 1))
+  pred <- model$predict(x_h, verbose = 0L)
+  forecast_scaled[h] <- as.numeric(pred)[1]
+  current <- rbind(current[-1, , drop = FALSE], pred[1, 1])
+}
+
+forecast <- inv_scale_fun(forecast_scaled)
+forecast_df <- data.frame(
+  date = test_dates,
+  actual = as.numeric(test_values),
+  forecast = forecast
+)
+forecast_df
+
+out_path <- file.path(getwd(), "../data", "lstm_forecast_14day.csv")
+write.csv(forecast_df, out_path, row.names = FALSE)
+\end{lstlisting}
+
+\begin{lstlisting}[style=pystyle, caption={LSTM Model Evaluation}, label=lst:lstm_eval]
+library(Metrics)
+library(yardstick)
+
+mae_train <- mean(abs(diff(as.numeric(train_values))))
+# Metrics::smape returns proportion; * 100 for percentage
+lstm_smape <- Metrics::smape(forecast_df$actual, forecast_df$forecast) * 100
+lstm_mase <- yardstick::mase_vec(
+  truth = forecast_df$actual,
+  estimate = forecast_df$forecast,
+  m = 1,
+  mae_train = mae_train
+)
+
+cat("LSTM sMAPE (%):", round(lstm_smape, 4), "\n")
+cat("LSTM MASE:", round(lstm_mase, 4), "\n")
+\end{lstlisting}
+
+\clearpage
+\section{Forecast Tables}\label{appendix:forecast_tables}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{ARIMA_table_forecast}
+  \caption{ARIMA 14-day forecast table (point forecast and prediction intervals).}
+  \label{fig:arima_table}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{LSTM_table_forecast}
+  \caption{LSTM 14-day forecast table (actual vs forecast).}
+  \label{fig:lstm_table}
+\end{figure}
+
+%=============================================================================
+\bibliographystyle{plain}
+\bibliography{hw6}
+%=============================================================================
+\end{document}
