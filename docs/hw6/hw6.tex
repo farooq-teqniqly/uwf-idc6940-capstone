@@ -45,17 +45,17 @@ The goal of this capstone project is to develop and evaluate forecasting methods
 
 \textbf{Research question:} How do ARIMA and LSTM compare for 14-day forecasting of daily average Uber trip duration in New York City when evaluated on sMAPE and MASE?
 
-This problem is significant in time-series and data science because it addresses the practical question of short-term forecasting for urban mobility while comparing a classical statistical approach (ARIMA) with a neural sequence model (LSTM) on the same univariate series. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 (2024 was a leap year) daily observations. The outputs are (1) a 14-day point forecast from each method, and (2) a comparison over the same horizon using sMAPE and MASE \cite{hyndman2006,prabhat2024}.
+This problem is significant in time-series and data science because it addresses the practical question of short-term forecasting for urban mobility while comparing a classical statistical approach (ARIMA) with a neural sequence model (LSTM) on the same time-series. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 (2024 was a leap year) daily observations. The outputs are (1) a 14-day point forecast from each method, and (2) a comparison over the same horizon using sMAPE and MASE \cite{hyndman2006,prabhat2024}.
 
 \subsection{Context and Background}
 
-Univariate time-series forecasting is a core problem in statistics and data science. Classical approaches such as ARIMA rely on stationarity, autocorrelation structure, and information criteria (AIC, BIC) for model selection \cite{forecast_auto_arima,hyndman2006}. Deep learning models such as long short-term memory (LSTM) networks can capture nonlinear temporal dependencies and are widely used for sequence prediction \cite{keras_r,keras_timeseries}. Comparative studies of traditional and machine-learning forecasting methods inform the choice of approach for a given problem and data size \cite{prabhat2024}. The data used here are derived from the New York City Taxi and Limousine Commission (TLC) High-Volume FHV trip record data \cite{nyctlc2024}, aggregated to daily average Uber trip duration for 2024.
+Time-series forecasting is a core problem in statistics and data science. ARIMA relies on stationarity, AIC, and BIC for model selection \cite{forecast_auto_arima,hyndman2006}. LSTM networks capture temporal dependencies and are for time-series forecasting. \cite{keras_r,keras_timeseries}. Comparative studies of traditional and machine-learning forecasting methods are described in \cite{prabhat2024}. The data used here are derived from the New York City Taxi and Limousine Commission (TLC) High-Volume FHV trip record data \cite{nyctlc2024}, aggregated to daily average Uber trip duration for 2024.
 
 \subsection{Objectives and Goals}
 
 \begin{itemize}
 \item Produce a 14-day point forecast of daily average Uber trip duration using an ARIMA model.
-\item Produce a 14-day forecast using an LSTM model on the same univariate series.
+\item Produce a 14-day forecast using an LSTM model on the same time-series.
 \item Compare both methods on the same 14-day test window using sMAPE and MASE.
 \item Document the data pipeline, preprocessing, and implementation so the analysis is reproducible.
 \end{itemize}
@@ -109,7 +109,7 @@ The first forecasting method is an ARIMA model fitted to the time-series. The AR
 The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
 
 \paragraph{Comparison.}
-Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE). ARIMA and LSTM are appropriate here because the problem is a univariate time series with a moderate number of observations; comparing a classical statistical model with a neural sequence model addresses the question of which approach performs better for this forecasting task.
+Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE). ARIMA and LSTM are appropriate here because the problem is a univariate time series with a moderate number of observations. Comparing a classical statistical model with a neural model addresses the question of which approach performs better for this forecasting task.
 
 \subsection{Experimental Design and Analytical Procedures}
 
