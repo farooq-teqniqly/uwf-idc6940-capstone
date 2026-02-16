@@ -26,7 +26,7 @@
 
 \graphicspath{{./images/},{../../images/}}
 
-\title{Week 4--5 Progress Report: Methods, Data, and Implementation}
+\title{Introduction and Methods: Capstone Forecasting Comparison}
 \author{Farooq Mahmud}
 \date{\today}
 
@@ -36,30 +36,39 @@
 \clearpage
 
 %=============================================================================
-\section{Project Goal and Research Question}
-%=============================================================================
-
-\subsection{Goal}
-
-The goal of this capstone project is to develop and evaluate forecasting methods for daily average Uber trip duration in New York City. This capstone compares an ARIMA approach with an LSTM model on the same dataset \cite{nyctlc2024}. The aim is to produce a 14-day forecast from each method and to assess both using sMAPE and MASE metrics \cite{hyndman2006,prabhat2024}.
-
-\subsection{Research Question}
-
-How do ARIMA and LSTM compare for 14-day forecasting of daily average Uber trip duration in New York City when evaluated on sMAPE and MASE?
-
-%=============================================================================
-\section{Expanded Methods}
+\section{Introduction}
 %=============================================================================
 
 \subsection{Problem Definition}
 
-This capstone predicts daily average Uber trip duration (in minutes) in New York City. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 (2024 was a leap year) daily observations. The outputs are (1) a 14-day point forecast of average trip duration from each method (ARIMA and LSTM), and (2) for comparison, the same horizon evaluated with sMAPE and MASE \cite{hyndman2006,prabhat2024} over a common 14-day period.
+The goal of this capstone project is to develop and evaluate forecasting methods for daily average Uber trip duration in New York City. This capstone compares an ARIMA approach with an LSTM model on the same dataset \cite{nyctlc2024}. The aim is to produce a 14-day forecast from each method and to assess both using sMAPE and MASE metrics \cite{hyndman2006,prabhat2024}.
 
-\subsection{Data Description}
+\textbf{Research question:} How do ARIMA and LSTM compare for 14-day forecasting of daily average Uber trip duration in New York City when evaluated on sMAPE and MASE?
 
-The data are daily average Uber trip duration (in minutes) for New York City in 2024, derived from the New York City Taxi and Limousine Commission (TLC) High-Volume FHV trip record data \cite{nyctlc2024}. Key variables are \texttt{pickup\_date} and \texttt{avg\_duration\_min}. The preprocessed time-series has 366 daily observations. Preprocessing is done via PySpark aggregation to daily averages.
+This problem is significant in time-series and data science because it addresses the practical question of short-term forecasting for urban mobility while comparing a classical statistical approach (ARIMA) with a neural sequence model (LSTM) on the same univariate series. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 (2024 was a leap year) daily observations. The outputs are (1) a 14-day point forecast from each method, and (2) a comparison over the same horizon using sMAPE and MASE \cite{hyndman2006,prabhat2024}.
 
-\subsection{Preprocessing Plan} \label{sec:preprocessing}
+\subsection{Context and Background}
+
+Univariate time-series forecasting is a core problem in statistics and data science. Classical approaches such as ARIMA rely on stationarity, autocorrelation structure, and information criteria (AIC, BIC) for model selection \cite{forecast_auto_arima,hyndman2006}. Deep learning models such as long short-term memory (LSTM) networks can capture nonlinear temporal dependencies and are widely used for sequence prediction \cite{keras_r,keras_timeseries}. Comparative studies of traditional and machine-learning forecasting methods inform the choice of approach for a given problem and data size \cite{prabhat2024}. The data used here are derived from the New York City Taxi and Limousine Commission (TLC) High-Volume FHV trip record data \cite{nyctlc2024}, aggregated to daily average Uber trip duration for 2024.
+
+\subsection{Objectives and Goals}
+
+\begin{itemize}
+\item Produce a 14-day point forecast of daily average Uber trip duration using an ARIMA model.
+\item Produce a 14-day forecast using an LSTM model on the same univariate series.
+\item Compare both methods on the same 14-day test window using sMAPE and MASE.
+\item Document the data pipeline, preprocessing, and implementation so the analysis is reproducible.
+\end{itemize}
+
+\subsection{Summary of Approach}
+
+The same daily time series (366 observations) is used for both methods. ARIMA model order is selected automatically (e.g., via \texttt{auto.arima}) using information criteria; the LSTM uses a sliding-window input, one LSTM layer, and recursive 14-step forecasting. Both models are evaluated on the same held-out 14-day period with sMAPE and MASE. Full technical details are given in Section~\ref{sec:methods}.
+
+%=============================================================================
+\section{Methods}\label{sec:methods}
+%=============================================================================
+
+\subsection{Data Acquisition and Sources}\label{sec:preprocessing}
 
 The following preprocessing is common to both modeling methods and produces the single daily time series (\texttt{pickup\_date}, \texttt{avg\_duration\_min}) that both ARIMA and LSTM use. It was applied to the NYC TLC High-Volume FHV trip record data \cite{nyctlc2024}. The PySpark code is given in Appendix~\ref{appendix:pyspark}. Preprocessing is necessary because the original dataset contains over 200 million trip records, of which about 179 million are Uber trip records. Outliers and invalid or nonsensical data are also removed resulting in a final total of about 159 million rows. These rows are converted to a CSV file representing the time-series. The CSV contains the 366 daily average trip duration (minutes) for 2024, produced by aggregating trip-level records (via PySpark) to one row per day.
 
@@ -69,35 +78,10 @@ The following preprocessing is common to both modeling methods and produces the 
 \item \textbf{Basic cleaning.} Remove trips with zero or negative duration, distance, or speed. Remove obvious outliers: trip duration outside 1--120 minutes, trip distance outside 0.1--100 miles, average speed outside 1--80 mph.
 \item \textbf{IQR-based outlier removal.} For \texttt{trip\_duration\_min}, \texttt{trip\_miles}, and \texttt{avg\_speed\_mph}, compute the interquartile range (IQR) and drop trips above $Q_3 + 1.5 \times \text{IQR}$ for each variable.
 \item \textbf{Aggregation.} Group by \texttt{pickup\_date} (date of \texttt{pickup\_datetime}), compute the mean trip duration per day (\texttt{avg\_duration\_min}), order by date, and round the average. The result is one row per day (366 days for 2024).
-\item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points (listing ~\ref{lst:load_time_series}). No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
+\item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points (Listing~\ref{lst:load_time_series}). No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
 \end{enumerate}
 
-\subsection{Modeling Plan}
-
-\paragraph{ARIMA.}
-The first forecasting method is an ARIMA model fitted to the time-series. The ARIMA model is created using the \texttt{auto.arima} function in R. This function combines stationarity testing (Augmented Dickey--Fuller test) and chooses the best model based on AIC and BIC \cite{forecast_auto_arima}. The code is shown in listing ~\ref{lst:arima_model}.
-
-\paragraph{LSTM.}
-The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
-
-\paragraph{Comparison.}
-Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE).
-
-\subsection{Evaluation Plan}
-
-Metrics are sMAPE and MASE over the 14-day forecast \cite{hyndman2006,prabhat2024}. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. The same test period is used for both methods. Results are presented in a table (ARIMA vs LSTM: sMAPE, MASE).
-
-%=============================================================================
-\section{Dataset and Access}
-%=============================================================================
-
-\subsection{Source}
-
-The primary data source used in the capstone is the CSV file explained in ~\ref{sec:preprocessing}.
-
-\subsection{Access and Loading}
-
-The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_series}) The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values} in the aggregated series. The CSV is located in \texttt{data/time\_series.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
+The primary data source used in the capstone is the CSV file produced by the pipeline above. The dataset is loaded in R via \texttt{read.csv()} (Listing~\ref{lst:load_time_series}). The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values}. The CSV is located in \texttt{data/time\_series.csv} or \texttt{data/finalproject.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
 
 \begin{table}[ht]
 \centering
@@ -116,17 +100,40 @@ The dataset is loaded in R via \texttt{read.csv()} (listing ~\ref{lst:load_time_
 \end{tabular}
 \end{table}
 
+\subsection{Mathematical or Statistical Models}
+
+\paragraph{ARIMA.}
+The first forecasting method is an ARIMA model fitted to the time-series. The ARIMA model is created using the \texttt{auto.arima} function in R. This function combines stationarity testing (Augmented Dickey--Fuller test) and chooses the best model based on AIC and BIC \cite{forecast_auto_arima}. The code is shown in Listing~\ref{lst:arima_model}.
+
+\paragraph{LSTM.}
+The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test (e.g., last 14 days held out as test). Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. It is trained with early stopping on validation loss. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
+
+\paragraph{Comparison.}
+Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE). ARIMA and LSTM are appropriate here because the problem is a univariate time series with a moderate number of observations; comparing a classical statistical model with a neural sequence model addresses the question of which approach performs better for this forecasting task.
+
+\subsection{Experimental Design and Analytical Procedures}
+
+The series is split chronologically: the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. Both ARIMA and LSTM produce a 14-day forecast aligned to the same test window for a fair comparison. Model evaluation uses sMAPE (symmetric mean absolute percentage error) and MASE (mean absolute scaled error) \cite{hyndman2006,prabhat2024}. These metrics are scale-independent and commonly used in forecasting comparisons; MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. Step-by-step implementation details are given in Section~\ref{sec:implementation}.
+
+\subsection{Software and Tools}
+
+\textbf{Software:} R (time-series modeling and LSTM), Python (PySpark for preprocessing), Quarto (reproducible reports). \textbf{Libraries:} R---\texttt{forecast} (ARIMA), \texttt{keras} (LSTM), \texttt{Metrics} and \texttt{yardstick} (sMAPE, MASE); Python---PySpark. \textbf{Computational resources:} PySpark preprocessing was run on Google Colab; R/Quarto pipelines can be run locally or in an R environment with sufficient memory.
+
+\subsection{Ethical Considerations}
+
+The project uses publicly available NYC TLC trip record data. No human subjects are involved, and no personally identifiable information is used in the analysis. There are no special ethical concerns beyond standard citation of the data source.
+
 %=============================================================================
-\section{Implementation and Experiments}
+\section{Implementation and Experiments}\label{sec:implementation}
 %=============================================================================
 
 \subsection{What Was Implemented}
 
 \paragraph{Preprocessing (\texttt{code/preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
 
-\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing ~\ref{lst:load_time_series}) and uses the same chronological split as LSTM- last 14 days as test, preceding 30 as validation, remainder as training (Listing ~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing ~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing ~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing ~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:time_series_eval}).
+\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing~\ref{lst:load_time_series}) and uses the same chronological split as LSTM- last 14 days as test, preceding 30 as validation, remainder as training (Listing~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:time_series_eval}).
 
-\paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing ~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing ~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing ~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing ~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparsion to the ARIMA model (Listing ~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing ~\ref{lst:lstm_eval}).
+\paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (Listing~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparison to the ARIMA model (Listing~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:lstm_eval}).
 
 
 \subsection{What Was Tested}
@@ -139,7 +146,7 @@ ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs en
 
 \subsection{Preliminary Outputs}
 
-Forecast tables for both models are shown in Appendix ~\ref{appendix:forecast_tables}. The complete output of the ARIMA and LSTM qmd files are in \texttt{code/arima\_forecast\_qmd\_output.pdf} and \texttt{code/lstm\_forecast\_qmd\_output.pdf} respectively. 
+Forecast tables for both models are shown in Appendix~\ref{appendix:forecast_tables}. The complete output of the ARIMA and LSTM qmd files are in \texttt{code/arima\_forecast\_qmd\_output.pdf} and \texttt{code/lstm\_forecast\_qmd\_output.pdf} respectively. 
 
 %=============================================================================
 \section{Results (Preliminary)}
