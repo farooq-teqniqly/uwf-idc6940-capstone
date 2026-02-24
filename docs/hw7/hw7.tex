@@ -225,8 +225,11 @@ The dataset, QMD files, PySpark notebook, and outputs are also available for dow
 
 Download and extract the ZIP file to access the CSV dataset and the code.
 
+%-----------------------------------------------------------------------------
+\section{Code Listings}\label{appendix:code_listings}
+%-----------------------------------------------------------------------------
 
-\section{PySpark Preprocessing Code}\label{appendix:pyspark}
+\subsection{PySpark Preprocessing Code}\label{appendix:pyspark}
 
 The following PySpark script was used to preprocess the NYC TLC High-Volume FHV trip record data and compute the average daily trip durations that feed the time series (see Section~\ref{sec:preprocessing}). The code is taken from \texttt{code/capstone\_project\_preprocessing.ipynb}.
 
@@ -341,7 +344,7 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
          .csv(final_path)
 \end{lstlisting}
 
-\section{Full-Year Time Series Plot Code}\label{appendix:fullyear_ts_plot}
+\subsection{Full-Year Time Series Plot Code}\label{appendix:fullyear_ts_plot}
 
 The following R code (from \texttt{code/arima\_forecast\_final.qmd}) produces the full-year time series plot in Figure~\ref{fig:fullyear_ts}.
 
@@ -359,7 +362,7 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
   theme_minimal()
 \end{lstlisting}
 
-\section{14-Day Comparison Plot Code}\label{appendix:comparison_plot}
+\subsection{14-Day Comparison Plot Code}\label{appendix:comparison_plot}
 
 The following R code produces the 14-day comparison plot (Figure~\ref{fig:comparison_plot}). It assumes \texttt{plot\_df} contains columns \texttt{date}, \texttt{actual}, \texttt{arima}, and \texttt{lstm} (e.g., from merging the ARIMA and LSTM forecast CSVs).
 
@@ -404,7 +407,7 @@ ggplot(plot_long, aes(x = date, y = duration_min, color = series)) +
   )
 \end{lstlisting}
 
-\section{ARIMA 14-Day Forecast with Intervals Code}\label{appendix:arima_intervals_plot}
+\subsection{ARIMA 14-Day Forecast with Intervals Code}\label{appendix:arima_intervals_plot}
 
 The following R code (from \texttt{code/arima\_forecast\_final.qmd}) produces the ARIMA 14-day forecast plot with 80\% and 95\% prediction intervals. It assumes \texttt{data}, \texttt{n\_train}, \texttt{h}, \texttt{forecast\_dates}, and \texttt{forecast\_summary} (with columns \texttt{Point Forecast}, \texttt{Lo 80}, \texttt{Hi 80}, \texttt{Lo 95}, \texttt{Hi 95}) are already defined from the ARIMA pipeline.
 
@@ -449,7 +452,7 @@ ggplot() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 \end{lstlisting}
 
-\section{ARIMA Modeling Code}\label{appendix:time_series_modeling_code}
+\subsection{ARIMA Modeling Code}\label{appendix:time_series_modeling_code}
 
 \begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:load_time_series]
 data <- read.csv(file.path(getwd(), "../data", "time_series.csv"))
@@ -529,7 +532,7 @@ library(forecast)
 fit_auto <- auto.arima(ts_data)
 \end{lstlisting}
 
-\section{LSTM Modeling Code}\label{appendix:lstm_modeling_code}
+\subsection{LSTM Modeling Code}\label{appendix:lstm_modeling_code}
 
 \begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:lstm_load_time_series]
 data <- read.csv(file.path(getwd(), "../data", "time_series.csv"))
