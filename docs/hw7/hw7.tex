@@ -158,16 +158,16 @@ ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs en
 Forecast tables for both models are shown in Appendix~\ref{appendix:forecast_tables}. The complete output of the ARIMA and LSTM qmd files are in \texttt{code/arima\_forecast\_qmd\_output.pdf} and \texttt{code/lstm\_forecast\_qmd\_output.pdf} respectively. 
 
 %=============================================================================
-\section{Results (Preliminary)}
+\section{Results}
 %=============================================================================
 
 \subsection{Comparison (ARIMA vs LSTM)}\label{sec:results-compare}
 
-Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models.
+Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models. Plot code is shown in Listing ~\ref{lst:comparison_plot}
 
 \begin{figure}[H]
   \centering
-  \textbf{[Placeholder: insert comparison plot from \texttt{images/comparison\_plot.png}]}
+  \includegraphics[width=\textwidth]{images/comparison_plot.png}
   \caption{14-day forecast: actual vs ARIMA vs LSTM.}
   \label{fig:comparison_plot}
 \end{figure}
