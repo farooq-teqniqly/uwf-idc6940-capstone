@@ -15,7 +15,7 @@ if (-not (Test-Path -LiteralPath $destData)) {
 }
 
 $copies = @(
-    @{ Source = 'time_series_forecast_final.qmd'; Dest = 'arima_forecast.qmd' }
+    @{ Source = 'arima_forecast_final.qmd'; Dest = 'arima_forecast.qmd' }
     @{ Source = 'lstm_forecast_final.qmd'; Dest = 'lstm_forecast.qmd' }
     @{ Source = 'preprocessing.ipynb'; Dest = 'preprocessing.ipynb' }
     )
@@ -24,6 +24,7 @@ $dataCopies = @(
     @{ Source = 'time_series.csv'; Dest = 'time_series.csv' }
     @{ Source = 'arima_forecast_14day.csv'; Dest = 'arima_forecast_14day.csv' }
     @{ Source = 'lstm_forecast_14day.csv'; Dest = 'lstm_forecast_14day.csv' }
+    @{ Source = 'preprocessing.ipynb'; Dest = 'preprocessing.ipynb' }
 )
 
 foreach ($item in $copies) {
