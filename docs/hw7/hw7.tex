@@ -81,7 +81,7 @@ The following preprocessing is common to both modeling methods and produces the 
 \item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points (Listing~\ref{lst:load_time_series}). No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
 \end{enumerate}
 
-The primary data source used in the capstone is the CSV file produced by the pipeline above. The dataset is loaded in R via \texttt{read.csv()} (Listing~\ref{lst:load_time_series}). The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values}. The CSV is located in \texttt{data/time\_series.csv} or \texttt{data/finalproject.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
+The primary data source used in the capstone is the CSV file produced by the pipeline above. The dataset is loaded in R via \texttt{read.csv()} (Listing~\ref{lst:load_time_series}). The series has \textbf{366 rows} (one per day in 2024) and \textbf{2 columns}: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are \textbf{no missing values}. The CSV is located in \texttt{data/time\_series.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
 
 \begin{table}[ht]
 \centering
@@ -131,7 +131,7 @@ The project uses publicly available NYC TLC trip record data. No human subjects 
 
 \paragraph{Preprocessing (\texttt{code/preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
 
-\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{finalproject.csv} (Listing~\ref{lst:load_time_series}) and uses the same chronological split as LSTM- last 14 days as test, preceding 30 as validation, remainder as training (Listing~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:time_series_eval}).
+\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{time\_series.csv} (Listing~\ref{lst:load_time_series}) and uses the same chronological split as LSTM- last 14 days as test, preceding 30 as validation, remainder as training (Listing~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:time_series_eval}).
 
 \paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (Listing~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparison to the ARIMA model (Listing~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:lstm_eval}).
 
@@ -314,10 +314,10 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
          .csv(final_path)
 \end{lstlisting}
 
-\section{Time-series Modeling Code}\label{appendix:time_series_modeling_code}
+\section{ARIMA Modeling Code}\label{appendix:time_series_modeling_code}
 
 \begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:load_time_series]
-data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data <- read.csv(file.path(getwd(), "../data", "time_series.csv"))
 data$pickup_date <- as.Date(data$pickup_date)
 data <- data[order(data$pickup_date), ]
 \end{lstlisting}
@@ -397,7 +397,7 @@ fit_auto <- auto.arima(ts_data)
 \section{LSTM Modeling Code}\label{appendix:lstm_modeling_code}
 
 \begin{lstlisting}[style=pystyle, caption={Loading Time Series}, label=lst:lstm_load_time_series]
-data <- read.csv(file.path(getwd(), "../data", "finalproject.csv"))
+data <- read.csv(file.path(getwd(), "../data", "time_series.csv"))
 data$pickup_date <- as.Date(data$pickup_date)
 data <- data[order(data$pickup_date), ]
 \end{lstlisting}
