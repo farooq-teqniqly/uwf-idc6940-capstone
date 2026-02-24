@@ -163,7 +163,14 @@ Forecast tables for both models are shown in Appendix~\ref{appendix:forecast_tab
 
 \subsection{Comparison (ARIMA vs LSTM)}\label{sec:results-compare}
 
-Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period.
+Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models.
+
+\begin{figure}[H]
+  \centering
+  \textbf{[Placeholder: insert comparison plot from \texttt{images/comparison\_plot.png}]}
+  \caption{14-day forecast: actual vs ARIMA vs LSTM.}
+  \label{fig:comparison_plot}
+\end{figure}
 
 \begin{table}[ht]
 \centering
@@ -339,6 +346,51 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
   ) +
   scale_x_date(date_breaks = "1 month", date_labels = "%b") +
   theme_minimal()
+\end{lstlisting}
+
+\section{14-Day Comparison Plot (R Code)}\label{appendix:comparison_plot}
+
+The following R code produces the 14-day comparison plot (Figure~\ref{fig:comparison_plot}). It assumes \texttt{plot\_df} contains columns \texttt{date}, \texttt{actual}, \texttt{arima}, and \texttt{lstm} (e.g., from merging the ARIMA and LSTM forecast CSVs).
+
+\begin{lstlisting}[style=pystyle, caption={14-day comparison: actual vs ARIMA vs LSTM}, label=lst:comparison_plot]
+library(scales)
+library(tidyr)
+
+# Long format for ggplot (one line per series)
+plot_long <- pivot_longer(
+  plot_df,
+  cols = c(actual, arima, lstm),
+  names_to = "series",
+  values_to = "duration_min"
+)
+plot_long$series <- factor(
+  plot_long$series,
+  levels = c("actual", "arima", "lstm"),
+  labels = c("Actual", "ARIMA forecast", "LSTM forecast")
+)
+
+ggplot(plot_long, aes(x = date, y = duration_min, color = series)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_color_manual(
+    values = c(
+      "Actual" = "#332288",
+      "ARIMA forecast" = "#009988",
+      "LSTM forecast" = "#EE7733"
+    ),
+    name = NULL
+  ) +
+  labs(
+    title = "14-day forecast: Actual vs ARIMA vs LSTM",
+    x = "Date",
+    y = "Avg trip duration (minutes)"
+  ) +
+  scale_x_date(date_breaks = "2 days", date_labels = "%b %d") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 \end{lstlisting}
 
 \section{ARIMA Modeling Code}\label{appendix:time_series_modeling_code}

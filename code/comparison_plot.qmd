@@ -1,0 +1,83 @@
+---
+title: "14-Day Comparison: Actual vs ARIMA vs LSTM"
+author: "Farooq Mahmud"
+format: html
+editor: source
+---
+
+## Load forecast data
+
+Read the 14-day forecast CSVs produced by the ARIMA and LSTM pipelines. Both files share the same test dates; the LSTM file includes actuals.
+
+```{r}
+# Paths: try data/ then ../data/ depending on working directory
+data_dir <- file.path(getwd(), "..", "data")
+lstm_path <- file.path(data_dir, "lstm_forecast_14day.csv")
+arima_path <- file.path(data_dir, "arima_forecast_14day.csv")
+
+lstm_df <- read.csv(lstm_path)
+lstm_df$date <- as.Date(lstm_df$date)
+
+arima_df <- read.csv(arima_path)
+arima_df$date <- as.Date(arima_df$date)
+```
+
+## Merge and prepare for plotting
+
+Merge on date so we have one row per day with actual, ARIMA forecast, and LSTM forecast.
+
+```{r}
+# LSTM file has: date, actual, forecast. ARIMA file has: date, actual, forecast.
+# Keep actual from one; get ARIMA and LSTM forecast columns.
+plot_df <- lstm_df
+plot_df$lstm <- plot_df$forecast
+plot_df$forecast <- NULL
+
+arima_fc <- arima_df[, c("date", "forecast")]
+names(arima_fc)[2] <- "arima"
+plot_df <- merge(plot_df, arima_fc, by = "date", all.x = TRUE)
+```
+
+## 14-day comparison plot: Actual vs ARIMA vs LSTM
+
+```{r}
+library(ggplot2)
+library(scales)
+library(tidyr)
+
+# Long format for ggplot (one line per series)
+plot_long <- pivot_longer(
+  plot_df,
+  cols = c(actual, arima, lstm),
+  names_to = "series",
+  values_to = "duration_min"
+)
+plot_long$series <- factor(
+  plot_long$series,
+  levels = c("actual", "arima", "lstm"),
+  labels = c("Actual", "ARIMA forecast", "LSTM forecast")
+)
+
+ggplot(plot_long, aes(x = date, y = duration_min, color = series)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_color_manual(
+    values = c(
+      "Actual" = "#332288",
+      "ARIMA forecast" = "#009988",
+      "LSTM forecast" = "#EE7733"
+    ),
+    name = NULL
+  ) +
+  labs(
+    title = "14-day forecast: Actual vs ARIMA vs LSTM",
+    x = "Date",
+    y = "Avg trip duration (minutes)"
+  ) +
+  scale_x_date(date_breaks = "2 days", date_labels = "%b %d") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
