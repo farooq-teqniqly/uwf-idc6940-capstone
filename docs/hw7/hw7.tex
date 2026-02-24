@@ -100,6 +100,15 @@ The primary data source used in the capstone is the CSV file produced by the pip
 \end{tabular}
 \end{table}
 
+Figure~\ref{fig:fullyear_ts} shows the full-year time series of daily average trip duration. The code that produces this plot is given in Listing~\ref{lst:fullyear_ts_plot}.
+
+\begin{figure}[H]
+  \centering
+  \textbf{[Placeholder: insert full-year time series plot]}
+  \caption{Daily average Uber trip duration (2024), full year.}
+  \label{fig:fullyear_ts}
+\end{figure}
+
 \subsection{Mathematical or Statistical Models}
 
 \paragraph{ARIMA.}
@@ -312,6 +321,24 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
          .write.option("header", True) \
          .mode("overwrite") \
          .csv(final_path)
+\end{lstlisting}
+
+\section{Full-Year Time Series Plot (R Code)}\label{appendix:fullyear_ts_plot}
+
+The following R code (from \texttt{code/arima\_forecast\_final.qmd}) produces the full-year time series plot in Figure~\ref{fig:fullyear_ts}.
+
+\begin{lstlisting}[style=pystyle, caption={Full-year time series plot}, label=lst:fullyear_ts_plot]
+library(ggplot2)
+
+ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
+  geom_line() +
+  labs(
+    title = "Daily Average Uber Trip Duration (2024)",
+    x = "Date",
+    y = "Average Duration (minutes)"
+  ) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  theme_minimal()
 \end{lstlisting}
 
 \section{ARIMA Modeling Code}\label{appendix:time_series_modeling_code}

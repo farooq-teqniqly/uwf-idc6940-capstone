@@ -59,18 +59,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="time_series_forecast_final_files/libs/clipboard/clipboard.min.js"></script>
-<script src="time_series_forecast_final_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="time_series_forecast_final_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="time_series_forecast_final_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="time_series_forecast_final_files/libs/quarto-html/popper.min.js"></script>
-<script src="time_series_forecast_final_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="time_series_forecast_final_files/libs/quarto-html/anchor.min.js"></script>
-<link href="time_series_forecast_final_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="time_series_forecast_final_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="time_series_forecast_final_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="time_series_forecast_final_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="time_series_forecast_final_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="arima_forecast_final_files/libs/clipboard/clipboard.min.js"></script>
+<script src="arima_forecast_final_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="arima_forecast_final_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="arima_forecast_final_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="arima_forecast_final_files/libs/quarto-html/popper.min.js"></script>
+<script src="arima_forecast_final_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="arima_forecast_final_files/libs/quarto-html/anchor.min.js"></script>
+<link href="arima_forecast_final_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="arima_forecast_final_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="arima_forecast_final_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="arima_forecast_final_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="arima_forecast_final_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -109,7 +109,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="load-time-series" class="level2">
 <h2 class="anchored" data-anchor-id="load-time-series">Load time series</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(<span class="fu">getwd</span>(), <span class="st">"../data"</span>, <span class="st">"finalproject.csv"</span>))</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(<span class="fu">getwd</span>(), <span class="st">"../data"</span>, <span class="st">"time_series.csv"</span>))</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data<span class="sc">$</span>pickup_date <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(data<span class="sc">$</span>pickup_date)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data[<span class="fu">order</span>(data<span class="sc">$</span>pickup_date), ]</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -121,17 +121,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>ts_data_train <span class="ot">&lt;-</span> <span class="fu">ts</span>(data<span class="sc">$</span>avg_duration_min[<span class="dv">1</span><span class="sc">:</span>n_train], <span class="at">frequency =</span> <span class="dv">366</span>, <span class="at">start =</span> <span class="fu">c</span>(<span class="dv">2024</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
+<section id="full-year-time-series-graph" class="level2">
+<h2 class="anchored" data-anchor-id="full-year-time-series-graph">Full-year time series graph</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(data, <span class="fu">aes</span>(<span class="at">x =</span> pickup_date, <span class="at">y =</span> avg_duration_min)) <span class="sc">+</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Daily Average Uber Trip Duration (2024)"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Date"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Average Duration (minutes)"</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"1 month"</span>, <span class="at">date_labels =</span> <span class="st">"%b"</span>) <span class="sc">+</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="arima_forecast_final_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
 <section id="model-selection" class="level2">
 <h2 class="anchored" data-anchor-id="model-selection">Model Selection</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forecast)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forecast)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Registered S3 method overwritten by 'quantmod':
   method            from
   as.zoo.data.frame zoo </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>auto_fit <span class="ot">&lt;-</span> <span class="fu">auto.arima</span>(ts_data_train)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>auto_fit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>auto_fit <span class="ot">&lt;-</span> <span class="fu">auto.arima</span>(ts_data_train)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>auto_fit</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Series: ts_data_train 
 ARIMA(1,1,4) 
@@ -149,38 +172,38 @@ AIC=868.01   AICc=868.27   BIC=890.63</code></pre>
 <section id="day-forecast" class="level2">
 <h2 class="anchored" data-anchor-id="day-forecast">14-Day Forecast</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Forecast 44 steps (validation + test) so last 14 match LSTM test period</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>forecast_result <span class="ot">&lt;-</span> <span class="fu">forecast</span>(auto_fit, <span class="at">h =</span> VAL_DAYS <span class="sc">+</span> h)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Forecast 44 steps (validation + test) so last 14 match LSTM test period</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>forecast_result <span class="ot">&lt;-</span> <span class="fu">forecast</span>(auto_fit, <span class="at">h =</span> VAL_DAYS <span class="sc">+</span> h)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="table-of-forecasted-values" class="level2">
 <h2 class="anchored" data-anchor-id="table-of-forecasted-values">Table of Forecasted Values</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Same 14-day period as LSTM (last 14 days of 2024) for fair comparison</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>forecast_full <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(forecast_result)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Use last 14 of the 44-step forecast (steps 31:44 = LSTM test period)</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>forecast_summary <span class="ot">&lt;-</span> forecast_full[(VAL_DAYS <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span>(VAL_DAYS <span class="sc">+</span> h), ]</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>forecast_dates <span class="ot">&lt;-</span> data<span class="sc">$</span>pickup_date[(<span class="fu">nrow</span>(data) <span class="sc">-</span> h <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span><span class="fu">nrow</span>(data)]</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save forecast to CSV for comparison with LSTM</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>formatted_forecast <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="at">Date =</span> forecast_dates, forecast_summary)</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>formatted_forecast <span class="ot">&lt;-</span> <span class="fu">within</span>(formatted_forecast, {</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Point Forecast</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Point Forecast</span><span class="st">`</span>, <span class="dv">2</span>)</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Lo 80</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Lo 80</span><span class="st">`</span>, <span class="dv">2</span>)</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Hi 80</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Hi 80</span><span class="st">`</span>, <span class="dv">2</span>)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Lo 95</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Lo 95</span><span class="st">`</span>, <span class="dv">2</span>)</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Hi 95</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Hi 95</span><span class="st">`</span>, <span class="dv">2</span>)</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>arima_forecast_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> forecast_dates,</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">actual =</span> data<span class="sc">$</span>avg_duration_min[(<span class="fu">nrow</span>(data) <span class="sc">-</span> h <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span><span class="fu">nrow</span>(data)],</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">forecast =</span> formatted_forecast<span class="sc">$</span><span class="st">`</span><span class="at">Point Forecast</span><span class="st">`</span></span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(formatted_forecast)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Same 14-day period as LSTM (last 14 days of 2024) for fair comparison</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>forecast_full <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(forecast_result)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Use last 14 of the 44-step forecast (steps 31:44 = LSTM test period)</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>forecast_summary <span class="ot">&lt;-</span> forecast_full[(VAL_DAYS <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span>(VAL_DAYS <span class="sc">+</span> h), ]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>forecast_dates <span class="ot">&lt;-</span> data<span class="sc">$</span>pickup_date[(<span class="fu">nrow</span>(data) <span class="sc">-</span> h <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span><span class="fu">nrow</span>(data)]</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Save forecast to CSV for comparison with LSTM</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>formatted_forecast <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="at">Date =</span> forecast_dates, forecast_summary)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>formatted_forecast <span class="ot">&lt;-</span> <span class="fu">within</span>(formatted_forecast, {</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Point Forecast</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Point Forecast</span><span class="st">`</span>, <span class="dv">2</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Lo 80</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Lo 80</span><span class="st">`</span>, <span class="dv">2</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Hi 80</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Hi 80</span><span class="st">`</span>, <span class="dv">2</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Lo 95</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Lo 95</span><span class="st">`</span>, <span class="dv">2</span>)</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">Hi 95</span><span class="st">`</span> <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="st">`</span><span class="at">Hi 95</span><span class="st">`</span>, <span class="dv">2</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>arima_forecast_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> forecast_dates,</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">actual =</span> data<span class="sc">$</span>avg_duration_min[(<span class="fu">nrow</span>(data) <span class="sc">-</span> h <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span><span class="fu">nrow</span>(data)],</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">forecast =</span> formatted_forecast<span class="sc">$</span><span class="st">`</span><span class="at">Point Forecast</span><span class="st">`</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(formatted_forecast)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                Date Point Forecast Lo 80 Hi 80 Lo 95 Hi 95
 2024.9617 2024-12-18          20.71 19.02 22.40 18.13 23.29
@@ -198,13 +221,13 @@ AIC=868.01   AICc=868.27   BIC=890.63</code></pre>
 2024.9945 2024-12-30          20.71 18.91 22.51 17.96 23.46
 2024.9973 2024-12-31          20.71 18.90 22.52 17.95 23.47</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(arima_forecast_df, <span class="fu">file.path</span>(<span class="fu">getwd</span>(), <span class="st">"../data"</span>, <span class="st">"arima_forecast_14day.csv"</span>), <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(arima_forecast_df, <span class="fu">file.path</span>(<span class="fu">getwd</span>(), <span class="st">"../data"</span>, <span class="st">"arima_forecast_14day.csv"</span>), <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="evaluation-smape-and-mase" class="level2">
 <h2 class="anchored" data-anchor-id="evaluation-smape-and-mase">Evaluation: sMAPE and MASE</h2>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Metrics)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'Metrics'</code></pre>
@@ -214,7 +237,7 @@ Attaching package: 'Metrics'</code></pre>
 
     accuracy</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(yardstick)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(yardstick)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>
 Attaching package: 'yardstick'</code></pre>
@@ -229,24 +252,24 @@ Attaching package: 'yardstick'</code></pre>
 
     accuracy</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>train_vals <span class="ot">&lt;-</span> data<span class="sc">$</span>avg_duration_min[<span class="dv">1</span><span class="sc">:</span>n_train]</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>mae_train <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(<span class="fu">diff</span>(train_vals)))</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Metrics::smape returns proportion; multiply by 100 for percentage</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>arima_smape <span class="ot">&lt;-</span> Metrics<span class="sc">::</span><span class="fu">smape</span>(arima_forecast_df<span class="sc">$</span>actual, arima_forecast_df<span class="sc">$</span>forecast) <span class="sc">*</span> <span class="dv">100</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>arima_mase <span class="ot">&lt;-</span> yardstick<span class="sc">::</span><span class="fu">mase_vec</span>(</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">truth =</span> arima_forecast_df<span class="sc">$</span>actual,</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimate =</span> arima_forecast_df<span class="sc">$</span>forecast,</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">m =</span> <span class="dv">1</span>,</span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">mae_train =</span> mae_train</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"ARIMA sMAPE (%):"</span>, <span class="fu">round</span>(arima_smape, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>train_vals <span class="ot">&lt;-</span> data<span class="sc">$</span>avg_duration_min[<span class="dv">1</span><span class="sc">:</span>n_train]</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>mae_train <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(<span class="fu">diff</span>(train_vals)))</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Metrics::smape returns proportion; multiply by 100 for percentage</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>arima_smape <span class="ot">&lt;-</span> Metrics<span class="sc">::</span><span class="fu">smape</span>(arima_forecast_df<span class="sc">$</span>actual, arima_forecast_df<span class="sc">$</span>forecast) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>arima_mase <span class="ot">&lt;-</span> yardstick<span class="sc">::</span><span class="fu">mase_vec</span>(</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">truth =</span> arima_forecast_df<span class="sc">$</span>actual,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimate =</span> arima_forecast_df<span class="sc">$</span>forecast,</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">m =</span> <span class="dv">1</span>,</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">mae_train =</span> mae_train</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"ARIMA sMAPE (%):"</span>, <span class="fu">round</span>(arima_smape, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>ARIMA sMAPE (%): 7.5833 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"ARIMA MASE:"</span>, <span class="fu">round</span>(arima_mase, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"ARIMA MASE:"</span>, <span class="fu">round</span>(arima_mase, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>ARIMA MASE: 1.9344 </code></pre>
 </div>

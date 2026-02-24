@@ -20,6 +20,22 @@ n_train <- nrow(data) - VAL_DAYS - h
 ts_data_train <- ts(data$avg_duration_min[1:n_train], frequency = 366, start = c(2024, 1))
 ```
 
+## Full-year time series graph
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
+  geom_line() +
+  labs(
+    title = "Daily Average Uber Trip Duration (2024)",
+    x = "Date",
+    y = "Average Duration (minutes)"
+  ) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  theme_minimal()
+```
+
 ## Model Selection
 ```{r}
 library(forecast)
