@@ -80,6 +80,49 @@ print(formatted_forecast)
 write.csv(arima_forecast_df, file.path(getwd(), "../data", "arima_forecast_14day.csv"), row.names = FALSE)
 ```
 
+## 14-Day Forecast with Intervals (plot)
+
+```{r}
+# Historical data (up to start of forecast period)
+hist_df <- data.frame(
+  date = data$pickup_date[1:n_train],
+  value = data$avg_duration_min[1:n_train]
+)
+
+# Forecast period: point forecast and intervals (last 14 of 44-step forecast)
+fc_df <- data.frame(
+  date = forecast_dates,
+  point = forecast_summary$`Point Forecast`,
+  lo80  = forecast_summary$`Lo 80`,
+  hi80  = forecast_summary$`Hi 80`,
+  lo95  = forecast_summary$`Lo 95`,
+  hi95  = forecast_summary$`Hi 95`
+)
+
+# Actuals for the 14-day window (for overlay)
+actual_14 <- data.frame(
+  date = forecast_dates,
+  actual = data$avg_duration_min[(nrow(data) - h + 1):nrow(data)]
+)
+
+ggplot() +
+  geom_line(data = hist_df, aes(x = date, y = value), color = "gray40", linewidth = 0.6) +
+  geom_ribbon(data = fc_df, aes(x = date, ymin = lo95, ymax = hi95), fill = "steelblue", alpha = 0.2) +
+  geom_ribbon(data = fc_df, aes(x = date, ymin = lo80, ymax = hi80), fill = "steelblue", alpha = 0.3) +
+  geom_line(data = fc_df, aes(x = date, y = point), color = "steelblue", linewidth = 0.9) +
+  geom_point(data = fc_df, aes(x = date, y = point), color = "steelblue", size = 2) +
+  geom_line(data = actual_14, aes(x = date, y = actual), color = "#332288", linewidth = 0.7) +
+  geom_point(data = actual_14, aes(x = date, y = actual), color = "#332288", size = 2) +
+  labs(
+    title = "ARIMA 14-Day Forecast with 80% and 95% Prediction Intervals",
+    x = "Date",
+    y = "Avg trip duration (minutes)"
+  ) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
 ## Evaluation: sMAPE and MASE
 
 ```{r}

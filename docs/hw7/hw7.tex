@@ -161,9 +161,20 @@ Forecast tables for both models are shown in Appendix~\ref{appendix:forecast_tab
 \section{Results}
 %=============================================================================
 
+\subsection{ARIMA 14-Day Forecast with Intervals}
+
+Figure~\ref{fig:arima_intervals} shows the ARIMA 14-day point forecast together with 80\% and 95\% prediction intervals. The plot is produced by the code in Listing~\ref{lst:arima_intervals_plot}. \textbf{How to interpret the graph:} The gray line is the historical daily average trip duration (training data) up to the start of the forecast period. The dark blue line and points are the ARIMA point forecast for the next 14 days. The two shaded blue bands represent uncertainty: the wider, lighter band is the 95\% prediction interval (we expect the actual value to lie in this band with probability 0.95), and the narrower, darker band is the 80\% interval. The dark purple line and points overlay the actual values for those 14 days, so you can see how often the actuals fall inside the intervals and how close the point forecast is to the truth. If most actual points lie within the 95\% band, the intervals are well calibrated; if the point forecast tracks the actuals closely, the model has good accuracy.
+
+\begin{figure}[H]
+  \centering
+  \textbf{[Placeholder: insert ARIMA 14-day forecast with intervals from \texttt{images/arima\_intervals.png}]}
+  \caption{ARIMA 14-day forecast with 80\% and 95\% prediction intervals.}
+  \label{fig:arima_intervals}
+\end{figure}
+
 \subsection{Comparison (ARIMA vs LSTM)}\label{sec:results-compare}
 
-Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models. Plot code is shown in Listing ~\ref{lst:comparison_plot}
+Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models. Plot code is shown in Listing~\ref{lst:comparison_plot}.
 
 \begin{figure}[H]
   \centering
@@ -391,6 +402,51 @@ ggplot(plot_long, aes(x = date, y = duration_min, color = series)) +
     legend.position = "bottom",
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
+\end{lstlisting}
+
+\section{ARIMA 14-Day Forecast with Intervals (R Code)}\label{appendix:arima_intervals_plot}
+
+The following R code (from \texttt{code/arima\_forecast\_final.qmd}) produces the ARIMA 14-day forecast plot with 80\% and 95\% prediction intervals. It assumes \texttt{data}, \texttt{n\_train}, \texttt{h}, \texttt{forecast\_dates}, and \texttt{forecast\_summary} (with columns \texttt{Point Forecast}, \texttt{Lo 80}, \texttt{Hi 80}, \texttt{Lo 95}, \texttt{Hi 95}) are already defined from the ARIMA pipeline.
+
+\begin{lstlisting}[style=pystyle, caption={ARIMA 14-day forecast with 80\% and 95\% intervals}, label=lst:arima_intervals_plot]
+# Historical data (up to start of forecast period)
+hist_df <- data.frame(
+  date = data$pickup_date[1:n_train],
+  value = data$avg_duration_min[1:n_train]
+)
+
+# Forecast period: point forecast and intervals (last 14 of 44-step forecast)
+fc_df <- data.frame(
+  date = forecast_dates,
+  point = forecast_summary$`Point Forecast`,
+  lo80  = forecast_summary$`Lo 80`,
+  hi80  = forecast_summary$`Hi 80`,
+  lo95  = forecast_summary$`Lo 95`,
+  hi95  = forecast_summary$`Hi 95`
+)
+
+# Actuals for the 14-day window (for overlay)
+actual_14 <- data.frame(
+  date = forecast_dates,
+  actual = data$avg_duration_min[(nrow(data) - h + 1):nrow(data)]
+)
+
+ggplot() +
+  geom_line(data = hist_df, aes(x = date, y = value), color = "gray40", linewidth = 0.6) +
+  geom_ribbon(data = fc_df, aes(x = date, ymin = lo95, ymax = hi95), fill = "steelblue", alpha = 0.2) +
+  geom_ribbon(data = fc_df, aes(x = date, ymin = lo80, ymax = hi80), fill = "steelblue", alpha = 0.3) +
+  geom_line(data = fc_df, aes(x = date, y = point), color = "steelblue", linewidth = 0.9) +
+  geom_point(data = fc_df, aes(x = date, y = point), color = "steelblue", size = 2) +
+  geom_line(data = actual_14, aes(x = date, y = actual), color = "#332288", linewidth = 0.7) +
+  geom_point(data = actual_14, aes(x = date, y = actual), color = "#332288", size = 2) +
+  labs(
+    title = "ARIMA 14-Day Forecast with 80% and 95% Prediction Intervals",
+    x = "Date",
+    y = "Avg trip duration (minutes)"
+  ) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 \end{lstlisting}
 
 \section{ARIMA Modeling Code}\label{appendix:time_series_modeling_code}
