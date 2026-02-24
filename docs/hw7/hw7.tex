@@ -346,8 +346,6 @@ df_daily_avg.select("pickup_date", "avg_duration_min") \
 
 \subsection{Full-Year Time Series Plot Code}\label{appendix:fullyear_ts_plot}
 
-The following R code (from \texttt{code/arima\_forecast\_final.qmd}) produces the full-year time series plot in Figure~\ref{fig:fullyear_ts}.
-
 \begin{lstlisting}[style=pystyle, caption={Full-year time series plot}, label=lst:fullyear_ts_plot]
 library(ggplot2)
 
@@ -363,8 +361,6 @@ ggplot(data, aes(x = pickup_date, y = avg_duration_min)) +
 \end{lstlisting}
 
 \subsection{14-Day Comparison Plot Code}\label{appendix:comparison_plot}
-
-The following R code produces the 14-day comparison plot (Figure~\ref{fig:comparison_plot}). It assumes \texttt{plot\_df} contains columns \texttt{date}, \texttt{actual}, \texttt{arima}, and \texttt{lstm} (e.g., from merging the ARIMA and LSTM forecast CSVs).
 
 \begin{lstlisting}[style=pystyle, caption={14-day comparison: actual vs ARIMA vs LSTM}, label=lst:comparison_plot]
 library(scales)
@@ -408,8 +404,6 @@ ggplot(plot_long, aes(x = date, y = duration_min, color = series)) +
 \end{lstlisting}
 
 \subsection{ARIMA 14-Day Forecast with Intervals Code}\label{appendix:arima_intervals_plot}
-
-The following R code (from \texttt{code/arima\_forecast\_final.qmd}) produces the ARIMA 14-day forecast plot with 80\% and 95\% prediction intervals. It assumes \texttt{data}, \texttt{n\_train}, \texttt{h}, \texttt{forecast\_dates}, and \texttt{forecast\_summary} (with columns \texttt{Point Forecast}, \texttt{Lo 80}, \texttt{Hi 80}, \texttt{Lo 95}, \texttt{Hi 95}) are already defined from the ARIMA pipeline.
 
 \begin{lstlisting}[style=pystyle, caption={ARIMA 14-day forecast with 80\% and 95\% intervals}, label=lst:arima_intervals_plot]
 # Historical data (up to start of forecast period)
