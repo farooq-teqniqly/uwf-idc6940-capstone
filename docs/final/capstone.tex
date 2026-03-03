@@ -185,14 +185,14 @@ Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the
 
 \begin{table}[ht]
 \centering
-\caption{Comparison of ARIMA and LSTM on 14-day forecast (sMAPE and MASE).}
+\caption{Comparison of ARIMA and LSTM on 14-day forecast (sMAPE and MASE). LSTM values are the mean of 5 runs (seed fixing did not yield reproducible runs in our environment).}
 \label{tab:compare}
 \begin{tabular}{lcc}
 \toprule
 Model & sMAPE (\%) & MASE \\
 \midrule
 ARIMA & 7.5833  & 1.9344  \\
-LSTM  & 7.5235 & 1.9411 \\
+LSTM  & 8.0475 & 2.0881 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -202,14 +202,13 @@ LSTM  & 7.5235 & 1.9411 \\
 \section{Issues and Limitations}
 %=============================================================================
 
-Limitations of the methods include: (i)~\textbf{Small sample size}-366 daily observations is on the small side for deep learning. The LSTM has limited training sequences after the chronological split, which may favor the simpler ARIMA model. (ii)~\textbf{Univariate models}-both methods use only the daily average trip duration. (iii)~\textbf{Alignment of evaluation period}-for a fair comparison, ARIMA and LSTM must forecast the same 14-day window. (iv)~\textbf{Library code changes}-if the sMAPE and MASE library code changes, the calculated metrics could change. (v)~\textbf{LSTM forecast values}-it was observed that the LSTM forecasted values could change from run to run (which change the sMAPE and MASE values), unlike the ARIMA forecasted values, which remained stable.
+Limitations of the methods include: (i)~\textbf{Small sample size}---366 daily observations is on the small side for deep learning. The LSTM has limited training sequences after the chronological split, which may favor the simpler ARIMA model. (ii)~\textbf{Univariate models}---both methods use only the daily average trip duration. (iii)~\textbf{Alignment of evaluation period}---for a fair comparison, ARIMA and LSTM must forecast the same 14-day window. (iv)~\textbf{Library code changes}---if the sMAPE and MASE library code changes, the calculated metrics could change. (v)~\textbf{LSTM reproducibility}---unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split (\texttt{sample()}), and dropout during training. The pipeline fixes the random seed (R \texttt{set.seed(42L)}, TensorFlow \texttt{tf\$random\$set\_seed(42L)}, and NumPy \texttt{np.random.seed(42)}), but runs still produced different metrics in our environment. Therefore the reported LSTM sMAPE and MASE in the comparison table are the \textbf{average of 5 runs} to give a stable, interpretable comparison with ARIMA.
 
 %=============================================================================
 \section{Next Steps}
 %=============================================================================
 
 \begin{enumerate}
-  \item \textbf{Stabilize LSTM reporting.} When reporting final metrics, either fix the random seed in the LSTM pipeline and re-run once, or run multiple times and report mean and standard deviation of sMAPE/MASE so the comparison with ARIMA is interpretable.
   \item \textbf{Refine LSTM hyperparameters.} Optionally explore sequence length, number of units, dropout, and training epochs and document the choices in the final report.
   \item \textbf{Extend data if available.} If additional years of NYC TLC data become accessible, extend the daily series to improve LSTM training and reassess both methods.
 \end{enumerate}
@@ -687,6 +686,6 @@ cat("LSTM MASE:", round(lstm_mase, 4), "\n")
 
 %=============================================================================
 \bibliographystyle{plain}
-\bibliography{hw7}
+\bibliography{capstone}
 %=============================================================================
 \end{document}
