@@ -117,6 +117,32 @@ history <- model$fit(
 )
 ```
 
+## LSTM training and validation loss
+
+Epochs on the x-axis, loss (MSE) on the y-axis; two lines show training loss and validation loss. This illustrates convergence and early stopping (model trained with early stopping on validation loss).
+
+```{r}
+library(ggplot2)
+library(tidyr)
+
+hist_df <- as.data.frame(history$history)
+hist_df$epoch <- seq_len(nrow(hist_df))
+hist_long <- pivot_longer(hist_df, cols = c(loss, val_loss), names_to = "series", values_to = "loss")
+hist_long$series <- factor(hist_long$series, levels = c("loss", "val_loss"),
+                           labels = c("Train loss", "Val loss"))
+
+ggplot(hist_long, aes(x = epoch, y = loss, color = series)) +
+  geom_line(linewidth = 0.8) +
+  labs(
+    title = "LSTM training and validation loss",
+    x = "Epoch",
+    y = "Loss (MSE)",
+    color = NULL
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
 ## 14-day forecast
 
 ```{r}
