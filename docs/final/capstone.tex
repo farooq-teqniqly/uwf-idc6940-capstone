@@ -144,6 +144,14 @@ The project uses publicly available NYC TLC trip record data. No human subjects 
 
 \paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (Listing~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparison to the ARIMA model (Listing~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:lstm_eval}).
 
+Figure~\ref{fig:lstm_loss} shows training and validation loss (MSE) by epoch. Both curves decrease quickly in early epochs and then flatten; the diamond markers indicate the epochs at which the minimum training loss and minimum validation loss occur. There is no sign of overfitting (validation loss does not rise while training loss continues to fall), and by the end of the run both curves have stabilized. Thus the chosen maximum of 100 epochs was sufficient, and additional epochs would not be expected to improve the forecast.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/LSTM_loss.png}
+  \caption{LSTM training and validation loss (MSE) by epoch. Markers indicate the epochs with minimum training loss and minimum validation loss.}
+  \label{fig:lstm_loss}
+\end{figure}
 
 \subsection{What Was Tested}
 
