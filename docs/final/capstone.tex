@@ -226,6 +226,11 @@ If the sMAPE and MASE library code changes, the calculated metrics could change.
 \subsection{LSTM reproducibility}
 Unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split, and dropout during training. Attempting to set the random seed did not work. Therefore the reported LSTM sMAPE and MASE in the comparison table are the \textbf{average of 5 runs} to give a stable, interpretable comparison with ARIMA.
 
+%=============================================================================
+\section{Conclusion}
+%=============================================================================
+
+This capstone compared ARIMA and LSTM for 14-day forecasting of daily average Uber trip duration in New York City on the same 366-day time series and the same test window, using sMAPE and MASE. ARIMA (auto-selected order) and an LSTM with one layer, early stopping, and recursive forecasting were implemented and evaluated. On the held-out 14-day period, both methods achieved similar scale-independent metrics (Table~\ref{tab:compare}); ARIMA had slightly lower sMAPE and MASE in the reported run. The LSTM training and validation loss curves (Figure~\ref{fig:lstm_loss}) showed convergence without clear overfitting. Limitations include the small sample size, univariate setup, and LSTM run-to-run variability (mitigated by reporting the mean of 5 runs). The work supports the conclusion that for this short-horizon, univariate forecasting task, a classical ARIMA model is competitive with an LSTM and may be preferable when interpretability and stability are priorities; with more data or richer features, the LSTM could be revisited.
 
 %=============================================================================
 \appendix
