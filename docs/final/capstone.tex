@@ -118,18 +118,39 @@ Figure~\ref{fig:fullyear_ts} shows the full-year time series of daily average tr
 The first forecasting method is an ARIMA model fitted to the time-series. The model has the form ARIMA($p$,$d$,$q$) with $p$, $d$, and $q$ selected by minimizing AIC and BIC \cite{hyndman2006}. The \texttt{auto.arima} function in R combines stationarity testing (Augmented Dickey--Fuller test) and chooses the best values for $p$, $d$, and $q$ based on AIC and BIC \cite{forecast_auto_arima}. The code is shown in Listing~\ref{lst:arima_model}.
 
 \paragraph{LSTM.}
-The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The series is split chronologically into train, validation, and test sets. The last 14 days are held out as the test set. Training data are scaled (e.g., min-max) and used to build sliding-window sequences of fixed length (e.g., 21 days) to predict the next day. The model has one LSTM layer (e.g., 32 units), dropout for regularization, and a dense output. Training minimizes mean squared error (MSE) on the training sequences using the Adam optimizer. Early stopping monitors validation loss with patience 15 and restores the best weights. The 14-day forecast is produced recursively: predict one step ahead, append to the input sequence, and repeat. This keeps the LSTM pipeline comparable to ARIMA in horizon and evaluation.
+The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The network is visually depicted in Figure ~\ref{fig:lstm-model}  The series is split chronologically into train, validation, and test sets. The last 14 days are held out as the test set. Training data are scaled (min-max scaler) and used to build sliding-window sequences of fixed length (21 days) to predict the next day. Choosing 21 days as the sequence length was a pragmatic choice. Figure ~\ref{fig:fullyear_ts} shows evidence of weekly cycles (weekdays vs. weekends behave differently). With a three week window, the model sees three repetitions of the weekly pattern in each window, giving the LSTM enough context to recognize the pattern.  The model has one LSTM layer (32 neurons), dropout for regularization, and a dense output producing the predicted trip duration for the next day. Training minimizes mean squared error (MSE) on the training sequences using the Adam optimizer. Early stopping monitors validation loss with patience 15 and restores the best weights. The 14-day forecast is produced recursively by predicting one step ahead, appending to the input sequence, and repeating. This keeps the LSTM pipeline comparable to ARIMA.
+
+\begin{figure}[H]
+  \centering
+  \caption{LSTM model visualization.}
+  \label{fig:lstm-model}
+   \includegraphics[width=\textwidth]{images/lstm-model.png}
+\end{figure}
 
 \paragraph{Comparison.}
-Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. Results are reported in a single table (ARIMA vs LSTM: sMAPE, MASE). ARIMA and LSTM are appropriate here because the problem is a univariate time series with a moderate number of observations. Comparing a classical statistical model with a neural model addresses the question of which approach performs better for this forecasting task.
+Both methods are evaluated on the same 14-day horizon and the same test period. Metrics are sMAPE and MASE \cite{hyndman2006,prabhat2024}. ARIMA and LSTM are appropriate models because the problem is a univariate time series with a moderate number of observations. Comparing a classical statistical model with a neural model addresses the question of which approach performs better for this type of forecasting.
 
 \subsection{Experimental Design and Analytical Procedures}
 
-The series is split chronologically: the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. Both ARIMA and LSTM produce a 14-day forecast aligned to the same test window for a fair comparison. Model evaluation uses sMAPE (symmetric mean absolute percentage error) and MASE (mean absolute scaled error) \cite{hyndman2006,prabhat2024}. These metrics are scale-independent and commonly used in forecasting comparisons; MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. LSTM hyperparameters (sequence length 21, 32 units, dropout 0.2, batch size 16) were fixed; no grid or random search was performed. Step-by-step implementation details are given in Section~\ref{sec:implementation}.
+The series is split chronologically with the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. Both ARIMA and LSTM produce a 14-day forecast aligned to the same test window for a fair comparison. Model evaluation uses sMAPE (symmetric mean absolute percentage error) and MASE (mean absolute scaled error) \cite{hyndman2006,prabhat2024}. These metrics are scale-independent and commonly used in forecasting comparisons. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. LSTM hyperparameters (sequence length 21, 32 neurons, dropout 0.2, batch size 16) were fixed. Step-by-step implementation details are given in Section~\ref{sec:implementation}.
 
 \subsection{Software and Tools}
 
-\textbf{Software:} R (time-series modeling and LSTM), Python (PySpark for preprocessing), Quarto (reproducible reports). \textbf{Libraries:} R---\texttt{forecast} (ARIMA), \texttt{keras} (LSTM), \texttt{Metrics} and \texttt{yardstick} (sMAPE, MASE); Python---PySpark. \textbf{Computational resources:} PySpark preprocessing was run on Google Colab; R/Quarto pipelines can be run locally or in an R environment with sufficient memory.
+\subsubsection{Software} 
+R was used for time-series modeling and LSTM. PySpark was used for preprocessing, and Quarto was used to produce reproducible reports. 
+
+\subsubsection{Libraries} 
+The following R libraries were used:
+
+\begin{enumerate}
+    \item \texttt{forecast} for ARIMA modeling.
+    \item \texttt{keras} for LSTM modeling.
+    \item \texttt{Metrics} and \texttt{yardstick} for calculating sMAPE and MASE.
+\end{enumerate}
+
+Python's PySpark library was used for preprocessing.
+
+\subsubsection{Computational resources} PySpark preprocessing was run on Google Colab. R/Quarto pipelines were run locally.
 
 \subsection{Ethical Considerations}
 
