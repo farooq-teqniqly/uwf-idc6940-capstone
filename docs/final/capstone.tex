@@ -115,7 +115,7 @@ Figure~\ref{fig:fullyear_ts} shows the full-year time series of daily average tr
 \subsection{Mathematical or Statistical Models}
 
 \paragraph{ARIMA.}
-The first forecasting method is an ARIMA model fitted to the time-series. The model has the form ARIMA($p$,$d$,$q$) with $p$, $d$, and $q$ selected by minimizing AIC and BIC \cite{hyndman2006}. The \texttt{auto.arima} function in R combines stationarity testing (Augmented Dickey--Fuller test) and chooses the best values for $p$, $d$, and $q$ based on AIC and BIC \cite{forecast_auto_arima}. The code is shown in Listing~\ref{lst:arima_model}.
+The first forecasting method is an ARIMA model fitted to the time-series. The model has the form ARIMA($p$,$d$,$q$) with $p$, $d$, and $q$ selected by minimizing AIC and BIC \cite{hyndman2006}. The \texttt{auto.arima} function in R combines stationarity testing (Augmented Dickey--Fuller test) and chooses the best values for $p$, $d$, and $q$ based on AIC and BIC \cite{forecast_auto_arima}. The code is shown in Listing~\ref{lst:arima_model}. The \texttt{auto.arima} function picks an ARIMA(1, 1, 4) model. This model assumes that trip duration depends on the most recent observation. It also incorporates corrections based on forecast errors from the last four observations. In practical terms, the correction accounts for short-term anomalies like unusual traffic conditions. The differencing term, being one, means that the model is predicting the change in duration from the previous time period. This differencing removes trends and achieves stationarity, which is required in ARIMA models.
 
 \paragraph{LSTM.}
 The second method is a long short-term memory (LSTM) network implemented in R with the \texttt{keras} package \cite{keras_r}, following time-series forecasting patterns \cite{keras_timeseries}. The network is visually depicted in Figure ~\ref{fig:lstm-model}  The series is split chronologically into train, validation, and test sets. The last 14 days are held out as the test set. Training data are scaled (min-max scaler) and used to build sliding-window sequences of fixed length (21 days) to predict the next day. Choosing 21 days as the sequence length was a pragmatic choice. Figure ~\ref{fig:fullyear_ts} shows evidence of weekly cycles (weekdays vs. weekends behave differently). With a three week window, the model sees three repetitions of the weekly pattern in each window, giving the LSTM enough context to recognize the pattern.  The model has one LSTM layer (32 neurons), dropout for regularization, and a dense output producing the predicted trip duration for the next day. Training minimizes mean squared error (MSE) on the training sequences using the Adam optimizer. Early stopping monitors validation loss with patience 15 and restores the best weights. The 14-day forecast is produced recursively by predicting one step ahead, appending to the input sequence, and repeating. This keeps the LSTM pipeline comparable to ARIMA.
@@ -164,11 +164,11 @@ The project uses publicly available NYC TLC trip record data. No human subjects 
 
 \paragraph{Preprocessing (\texttt{code/preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
 
-\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{time\_series.csv} (Listing~\ref{lst:load_time_series}) and uses the same chronological split as LSTM- last 14 days as test, preceding 30 as validation, remainder as training (Listing~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:time_series_eval}).
+\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{time\_series.csv} (Listing~\ref{lst:load_time_series}) and uses the same chronological split as LSTM, i.e. last 14 days as test, preceding 30 as validation, and the remainder as training (Listing~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:time_series_eval}).
 
-\paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 units), dropout (0.2), and a dense output, implemented with the Keras R API (Listing~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively- the last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparison to the ARIMA model (Listing~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:lstm_eval}).
+\paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 neurons), dropout (0.2), and a dense output, implemented with the Keras R API (Listing~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively. The last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparison to the ARIMA model (Listing~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:lstm_eval}).
 
-Figure~\ref{fig:lstm_loss} shows training and validation loss (MSE) by epoch (plot code in Listing~\ref{lst:lstm_loss_plot}). Both curves decrease quickly in early epochs and then flatten; the diamond markers indicate the epochs at which the minimum training loss and minimum validation loss occur. There is no sign of overfitting (validation loss does not rise while training loss continues to fall), and by the end of the run both curves have stabilized. Thus the chosen maximum of 100 epochs was sufficient, and additional epochs would not be expected to improve the forecast.
+Figure~\ref{fig:lstm_loss} shows training and validation loss (MSE) by epoch (plot code in Listing~\ref{lst:lstm_loss_plot}). Both curves decrease quickly in early epochs and then flatten; the diamond markers indicate the epochs at which the minimum training loss and minimum validation loss occur. There is no sign of overfitting as validation loss does not rise while training loss continues to fall. Both curves stabilize by the end of the run. Therefore, the chosen maximum of 100 epochs was sufficient, and additional epochs would not be expected to improve the forecast.
 
 \begin{figure}[H]
   \centering
@@ -179,11 +179,18 @@ Figure~\ref{fig:lstm_loss} shows training and validation loss (MSE) by epoch (pl
 
 \subsection{What Was Tested}
 
-The dataset \texttt{data/time\_series.csv} contains the average trip duration in minutes for the 366 days of 2024. For LSTM, the series is split chronologically- the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. The same 14-day test window is used for evaluation so that ARIMA and LSTM can be compared on the same dates. The target variable is \texttt{avg\_duration\_min} (daily average trip duration in minutes).
+The dataset \texttt{data/time\_series.csv} contains the average trip duration in minutes for the 366 days of 2024. For LSTM, the series is split chronologically. The last 14 days are held out as the test set, the preceding 30 days as the validation set, and the remainder as the training set. The same 14-day test window is used for evaluation so that ARIMA and LSTM can be compared on the same dates. The target variable is \texttt{avg\_duration\_min} (daily average trip duration in minutes).
 
 \subsection{What Worked and What Did Not}
 
-ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. Three limitations were encountered: (i)~small sample size (366 points) limits LSTM capacity and favors simpler models, (ii)~hyperparameters (sequence length, units, dropout) were chosen pragmatically and could be refined, and (iii)~alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
+ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. Three limitations were encountered: 
+
+\begin{enumerate}
+    \item \textit{Small sample size:} The small sample size of 366 points limits LSTM capacity and favors simpler models.
+    \item \textit{Hyperparameter selection:} The hyperparameters sequence length, units, and dropout were chosen pragmatically and could be refined.
+    \item \textit{Alignment of evaluation period:} Alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
+\end{enumerate}
+
 
 \subsection{Preliminary Outputs}
 
@@ -206,12 +213,12 @@ Figure~\ref{fig:arima_intervals} shows the ARIMA 14-day point forecast together 
 
 \subsection{Comparison (ARIMA vs LSTM)}\label{sec:results-compare}
 
-Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. The LSTM metrics are the mean of 5 runs; variability across runs was observed but standard deviations were not recorded for the table. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models. Plot code is shown in Listing~\ref{lst:comparison_plot}.
+Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. The LSTM metrics are the mean of 5 runs; variability across runs was observed but standard deviations were not recorded for the table. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models. Plot code is shown in Listing~\ref{lst:comparison_plot}. 
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{images/comparison_plot.png}
-  \caption{14-day forecast: actual vs ARIMA vs LSTM.}
+  \caption{Comparison of 14-Day Forecasts for Average Trip Duration Using ARIMA and LSTM Models.}
   \label{fig:comparison_plot}
 \end{figure}
 
@@ -236,40 +243,42 @@ LSTM  & 8.0475 & 2.0881 \\
 
 \subsection{Interpretation}
 
-The results speak directly to the research question: on the same 14-day holdout and the same metrics (sMAPE and MASE), ARIMA and LSTM achieved similar performance, with ARIMA slightly better in the reported run (Table~\ref{tab:compare}). For this short-horizon, univariate forecasting task with 366 daily observations, the classical ARIMA model is competitive with the LSTM. The LSTM training and validation loss (Figure~\ref{fig:lstm_loss}) showed convergence without clear overfitting, so the model was not underfit or overfit in an obvious way; the small gap between the two methods likely reflects the limited data and the univariate setup rather than a fundamental advantage of one approach over the other.
+The results speak directly to the research question. On the same 14-day holdout and the same metrics (sMAPE and MASE), ARIMA and LSTM achieved similar performance, with ARIMA slightly better in the reported run (Table~\ref{tab:compare}). For this short-horizon, univariate forecasting task with 366 daily observations, the classical ARIMA model is competitive with the LSTM. The LSTM training and validation loss (Figure~\ref{fig:lstm_loss}) showed convergence without clear overfitting, so the model was not underfit or overfit in an obvious way. The small gap between the two methods likely reflects the limited data and the univariate setup rather than a fundamental advantage of one approach over the other.
+
+The ARIMA forecast is noticeably flat, which is expected. The ARIMA(1,1,4) model predicts changes from the previous value because the differencing term is one. Since the expected future changes in trip duration converge toward zero, the model produces forecasts that stabilize around the recent average trip duration. In contrast, the LSTM model produces a smooth forecast with a slight downward trend. The LSTM network tends to minimize prediction error by predicting values close to the historical mean value. Because the model was trained only on trip durations and did not incorporate additional variables such as holidays or weather conditions, it was unable to capture abrupt fluctuations observed in the actual data, e.g. the noticeable decrease in trip duration on December 25, implying reduced ridership.
 
 \subsection{Limitations}
 
 Several limitations of the methods were encountered.
 
-\subsubsection{Small sample size}
-366 daily observations is on the small side for deep learning. The LSTM has limited training sequences after the chronological split, which may favor the simpler ARIMA model.
+\begin{enumerate}
+    \item \textit{Small sample size:} 366 daily observations is on the small side for deep learning. The LSTM has limited training sequences after the chronological split, which may favor the simpler ARIMA model.
+    \item \textit{Univariate models:} Both methods use only daily average trip durations. Factors such as weather and holidays are not accounted for in either model. 
+    \item \textit{Alignment of evaluation period:}  Alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
+    \item \textit{Library code changes:} If the sMAPE and MASE library code changes, the calculated metrics could change.
+    \item \textit{LSTM reproducibility:} Unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split, and dropout during training. Attempting to set the random seed did not work. Therefore the reported LSTM sMAPE and MASE in the comparison table are the \textbf{average of 5 runs} to give a stable, interpretable comparison with ARIMA.
+\end{enumerate}
 
-\subsubsection{Univariate models}
-Both methods use only the daily average trip duration.
-
-\subsubsection{Alignment of evaluation period}
-For a fair comparison, ARIMA and LSTM must forecast the same 14-day window.
-
-\subsubsection{Library code changes}
-If the sMAPE and MASE library code changes, the calculated metrics could change.
-
-\subsubsection{LSTM reproducibility}
-Unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split, and dropout during training. Attempting to set the random seed did not work. Therefore the reported LSTM sMAPE and MASE in the comparison table are the \textbf{average of 5 runs} to give a stable, interpretable comparison with ARIMA.
 
 \subsection{Implications}
 
-The work contributes a direct, reproducible comparison of ARIMA and LSTM on the same urban-mobility time series and evaluation protocol. Practically, the results suggest that for short-term forecasting of daily aggregate trip duration with limited data, a classical ARIMA model may be preferable when interpretability and run-to-run stability matter; the LSTM remains a viable option and could be revisited with more data or richer features. The pipeline (preprocessing, code, and evaluation) is documented and available so that others can replicate or extend the analysis.
+The work contributes a direct, reproducible comparison of ARIMA and LSTM on the same urban-mobility time series and evaluation strategy. Practically, the results suggest that for short-term forecasting of daily aggregate trip duration with limited data, a classical ARIMA model may be preferable when interpretability and run-to-run stability matter. The LSTM remains a viable option and could be revisited with more data or richer features. The pipeline (preprocessing, code, and evaluation) is documented and available so that others can replicate or extend the analysis. 
 
 %=============================================================================
 \section{Conclusion}
 %=============================================================================
 
-This capstone compared ARIMA and LSTM for 14-day forecasting of daily average Uber trip duration in New York City on the same 366-day time series and the same test window, using sMAPE and MASE. ARIMA (auto-selected order) and an LSTM with one layer, early stopping, and recursive forecasting were implemented and evaluated. On the held-out 14-day period, both methods achieved similar scale-independent metrics (Table~\ref{tab:compare}); ARIMA had slightly lower sMAPE and MASE in the reported run. The LSTM training and validation loss curves (Figure~\ref{fig:lstm_loss}) showed convergence without clear overfitting. Limitations include the small sample size, univariate setup, and LSTM run-to-run variability (mitigated by reporting the mean of 5 runs). The work supports the conclusion that for this short-horizon, univariate forecasting task, a classical ARIMA model is competitive with an LSTM and may be preferable when interpretability and stability are priorities; with more data or richer features, the LSTM could be revisited.
+This capstone compared ARIMA and LSTM for 14-day forecasting of daily average Uber trip duration in New York City on the same 366-day time series and the same test window, using sMAPE and MASE. ARIMA (auto-selected order) and an LSTM with one layer, early stopping, and recursive forecasting were implemented and evaluated. On the held-out 14-day period, both methods achieved similar metrics (Table~\ref{tab:compare}). LSTM had slightly lower sMAPE and MASE in the reported run. The LSTM training and validation loss curves (Figure~\ref{fig:lstm_loss}) showed convergence without clear overfitting. Limitations include the small sample size, univariate setup, and LSTM run-to-run variability (mitigated by reporting the mean of 5 runs). The capstone shows that although LSTM networks are widely used for time-series forecasting, they do not always outperform classical statistical models when datasets are relatively small. ARIMA models can perform well when the underlying patterns are relatively simple. In contrast, neural networks typically require larger datasets to effectively learn complex relationships and may produce overly smooth forecasts when limited training data is available. In this project, the ARIMA model provided a stable baseline forecast, while the LSTM model generated a smoothed trend that did not fully capture the short-term variability observed in the actual trip duration data.
 
 \subsection{Future Work}
 
-Concrete next steps include: (1) extending the dataset with additional years of NYC TLC data if available, to improve LSTM training and reassess both methods; (2) refining LSTM hyperparameters (sequence length, number of units, dropout, epochs) or running a small grid search and documenting the choices; (3) quantifying and reporting LSTM variability (e.g., standard deviation of sMAPE and MASE across runs) or investing in reproducibility (e.g., deterministic backends); (4) comparing against alternative models (e.g., Prophet or other neural architectures) and optionally reporting a naive baseline on the same test window for context.
+Concrete next steps include: 
+
+\begin{enumerate}
+\item Extending the dataset with additional years of NYC TLC data to improve LSTM training and reassess both methods.
+\item Refining LSTM hyperparameters (sequence length, number of units, dropout, epochs).
+\item Solving the sMAPE and MASE reproducibility problem in LSTM networks. 
+\end{enumerate}
 
 %=============================================================================
 \appendix
