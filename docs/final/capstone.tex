@@ -183,13 +183,7 @@ The dataset \texttt{data/time\_series.csv} contains the average trip duration in
 
 \subsection{What Worked and What Did Not}
 
-ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. Three limitations were encountered: 
-
-\begin{enumerate}
-    \item \textit{Small sample size:} The small sample size of 366 points limits LSTM capacity and favors simpler models.
-    \item \textit{Hyperparameter selection:} The hyperparameters sequence length, units, and dropout were chosen pragmatically and could be refined.
-    \item \textit{Alignment of evaluation period:} Alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
-\end{enumerate}
+ARIMA fitting and 14-day forecasting run successfully. The LSTM pipeline runs end-to-end. Early stopping on validation loss is used to limit overfitting. The main challenge was LSTM run-to-run variability which resulted in the predicted values, hence sMAPE and MASE values, differing from run to run. This was addressed by taking the average metric values over five runs. Limitations are discussed in detail in Section ~\ref{sec:discussion}.
 
 
 \subsection{Preliminary Outputs}
@@ -239,6 +233,7 @@ LSTM  & 8.0475 & 2.0881 \\
 
 %=============================================================================
 \section{Discussion}
+\label{sec:discussion}
 %=============================================================================
 
 \subsection{Interpretation}
