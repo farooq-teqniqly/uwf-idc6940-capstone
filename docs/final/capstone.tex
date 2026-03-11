@@ -82,9 +82,7 @@ The preprocessing detailed in this section is common to both the ARIMA and LSTM 
 \item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points (Listing~\ref{lst:load_time_series}). No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
 \end{enumerate}
 
-The primary data source used in the capstone is the CSV file produced by the pipeline above. The dataset is loaded in R via \texttt{read.csv()} (Listing~\ref{lst:load_time_series}). The series has 366 rows (one per day in 2024) and 2 columns: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are no missing values. The CSV is located in \texttt{data/time\_series.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM 
-
-(\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
+The primary data source used in the capstone is the CSV file produced by the pipeline above. The dataset is loaded in R via \texttt{read.csv()} (Listing~\ref{lst:load_time_series}). The series has 366 rows (one per day in 2024) and 2 columns: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are no missing values. The CSV is located in \texttt{data/time\_series.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
 
 \begin{table}[ht]
 \centering
@@ -142,7 +140,7 @@ Both methods are evaluated on the same 14-day horizon and the same test period. 
 
 \subsection{Experimental Design and Analytical Procedures}
 
-The series is split chronologically with the last 14 days are held out as test, the preceding 30 days as validation, and the remainder as training. Both ARIMA and LSTM produce a 14-day forecast aligned to the same test window for a fair comparison. Model evaluation uses sMAPE (symmetric mean absolute percentage error) and MASE (mean absolute scaled error) \cite{hyndman2006,prabhat2024}. These metrics are scale-independent and commonly used in forecasting comparisons. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. LSTM hyperparameters (sequence length 21, 32 neurons, dropout 0.2, batch size 16) were fixed. Step-by-step implementation details are given in Section~\ref{sec:implementation}.
+The series is split chronologically with the last 14 days held out as test, the preceding 30 days as validation, and the remainder as training. Both ARIMA and LSTM produce a 14-day forecast aligned to the same test window for a fair comparison. Model evaluation uses sMAPE (symmetric mean absolute percentage error) and MASE (mean absolute scaled error) \cite{hyndman2006,prabhat2024}. These metrics are scale-independent and commonly used in forecasting comparisons. MASE is scaled by the mean absolute error of a naive one-step forecast on the training data \cite{hyndman2006}. LSTM hyperparameters (sequence length 21, 32 neurons, dropout 0.2, batch size 16) were fixed. Step-by-step implementation details are given in Section~\ref{sec:implementation}.
 
 \subsection{Software and Tools}
 
