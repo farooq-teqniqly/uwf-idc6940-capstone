@@ -251,7 +251,7 @@ Several limitations of the methods were encountered.
     \item \textit{Univariate models:} Both methods use only daily average trip durations. Factors such as weather and holidays are not accounted for in either model. 
     \item \textit{Alignment of evaluation period:}  Alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
     \item \textit{Library code changes:} If the sMAPE and MASE library code changes, the calculated metrics could change.
-    \item \textit{LSTM reproducibility:} Unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split, and dropout during training. Attempting to set the random seed did not work. Therefore the reported LSTM metrics are the \textbf{mean $\pm$ standard deviation of 5 independent runs} (sMAPE: $8.0475 \pm 0.336$\%, MASE: $2.0881 \pm 0.0892$) to give a stable, interpretable comparison with ARIMA.
+    \item \textit{LSTM reproducibility:} Unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split, and dropout during training. Attempting to set the random seed did not work. Therefore the reported LSTM metrics are the mean $\pm$ standard deviation of 5 independent runs (Table \ref{tab:compare}) to give a stable, interpretable comparison with ARIMA.
 \end{enumerate}
 
 
