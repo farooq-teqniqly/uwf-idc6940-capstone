@@ -207,7 +207,7 @@ Figure~\ref{fig:arima_intervals} shows the ARIMA 14-day point forecast together 
 
 \subsection{Comparison (ARIMA vs LSTM)}\label{sec:results-compare}
 
-Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. The LSTM metrics are the mean of 5 runs; variability across runs was observed but standard deviations were not recorded for the table. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models. Plot code is shown in Listing~\ref{lst:comparison_plot}. 
+Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the same 14-day period. LSTM metrics are the mean $\pm$ standard deviation of 5 independent runs. Figure~\ref{fig:comparison_plot} shows the 14-day actual and forecast series for both models. Plot code is shown in Listing~\ref{lst:comparison_plot}. 
 
 \begin{figure}[H]
   \centering
@@ -218,14 +218,14 @@ Table~\ref{tab:compare} summarizes sMAPE (\%) and MASE for both methods over the
 
 \begin{table}[ht]
 \centering
-\caption{Comparison of ARIMA and LSTM on 14-day forecast (sMAPE and MASE). LSTM values are the mean of 5 runs (seed fixing did not yield reproducible runs in our environment).}
+\caption{Comparison of ARIMA and LSTM on 14-day forecast (sMAPE and MASE). LSTM values are mean $\pm$ SD of 5 runs (seed fixing did not yield reproducible runs in our environment).}
 \label{tab:compare}
 \begin{tabular}{lcc}
 \toprule
 Model & sMAPE (\%) & MASE \\
 \midrule
 ARIMA & 7.5833  & 1.9344  \\
-LSTM  & 8.0475 & 2.0881 \\
+LSTM  & $8.0475 \pm 0.336$ & $2.0881 \pm 0.0892$ \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -251,7 +251,7 @@ Several limitations of the methods were encountered.
     \item \textit{Univariate models:} Both methods use only daily average trip durations. Factors such as weather and holidays are not accounted for in either model. 
     \item \textit{Alignment of evaluation period:}  Alignment of the 14-day evaluation period between ARIMA and LSTM must be ensured for a fair comparison.
     \item \textit{Library code changes:} If the sMAPE and MASE library code changes, the calculated metrics could change.
-    \item \textit{LSTM reproducibility:} Unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split, and dropout during training. Attempting to set the random seed did not work. Therefore the reported LSTM sMAPE and MASE in the comparison table are the \textbf{average of 5 runs} to give a stable, interpretable comparison with ARIMA.
+    \item \textit{LSTM reproducibility:} Unlike ARIMA, the LSTM forecast (and thus sMAPE and MASE) can vary from run to run because of randomness in weight initialization, the validation split, and dropout during training. Attempting to set the random seed did not work. Therefore the reported LSTM metrics are the \textbf{mean $\pm$ standard deviation of 5 independent runs} (sMAPE: $8.0475 \pm 0.336$\%, MASE: $2.0881 \pm 0.0892$) to give a stable, interpretable comparison with ARIMA.
 \end{enumerate}
 
 
