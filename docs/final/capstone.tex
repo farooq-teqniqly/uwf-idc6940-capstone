@@ -26,7 +26,7 @@
 
 \graphicspath{{./images/},{../../images/}}
 
-\title{Introduction and Methods: Capstone Forecasting Comparison}
+\title{Comparing ARIMA and LSTM for Short-Term Forecasting of Daily Average Uber Trip Duration in New York City}
 \author{Farooq Mahmud\\[0.5em] \normalsize IDC 6940 Capstone}
 \date{\today}
 
@@ -46,7 +46,7 @@ The goal of this capstone project is to develop and evaluate forecasting methods
 
 \textbf{Research question:} How do ARIMA and LSTM forecasting methods compare for 14-day forecasting of daily average Uber trip duration in New York City when evaluated on sMAPE and MASE?
 
-This problem is significant in time-series and data science. The question of wether a classical statistical approach (ARIMA) or a neural sequence model (LSTM) approach is better for short-term forecasting is a practical one. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 (2024 was a leap year) daily observations. The outputs are (1) a 14-day point forecast from each method, and (2) a comparison over the same horizon using sMAPE and MASE \cite{hyndman2006,prabhat2024}. Success is measured by lower sMAPE and MASE on the same 14-day period. The project addresses the gap of directly comparing a classical and a neural forecasting approach on the same univariate time series.
+This problem is significant in time-series and data science. The question of whether a classical statistical approach (ARIMA) or a neural sequence model (LSTM) approach is better for short-term forecasting is a practical one. The target variable is the mean trip duration per day, aggregated from high-volume for-hire vehicle (FHV) trip records \cite{nyctlc2024}. The inputs are a univariate time series of 366 (2024 was a leap year) daily observations. The outputs are (1) a 14-day point forecast from each method, and (2) a comparison over the same horizon using sMAPE and MASE \cite{hyndman2006,prabhat2024}. Success is measured by lower sMAPE and MASE on the same 14-day period. The project addresses the gap of directly comparing a classical and a neural forecasting approach on the same univariate time series.
 
 \subsection{Context and Background}
 
@@ -263,7 +263,7 @@ The work contributes a direct, reproducible comparison of ARIMA and LSTM on the 
 \section{Conclusion}
 %=============================================================================
 
-This capstone compared ARIMA and LSTM for 14-day forecasting of daily average Uber trip duration in New York City on the same 366-day time series and the same test window, using sMAPE and MASE. ARIMA (auto-selected order) and an LSTM with one layer, early stopping, and recursive forecasting were implemented and evaluated. On the held-out 14-day period, both methods achieved similar metrics (Table~\ref{tab:compare}). LSTM had slightly lower sMAPE and MASE in the reported run. The LSTM training and validation loss curves (Figure~\ref{fig:lstm_loss}) showed convergence without clear overfitting. Limitations include the small sample size, univariate setup, and LSTM run-to-run variability (mitigated by reporting the mean of 5 runs). The capstone shows that although LSTM networks are widely used for time-series forecasting, they do not always outperform classical statistical models when datasets are relatively small. ARIMA models can perform well when the underlying patterns are relatively simple. In contrast, neural networks typically require larger datasets to effectively learn complex relationships and may produce overly smooth forecasts when limited training data is available. In this project, the ARIMA model provided a stable baseline forecast, while the LSTM model generated a smoothed trend that did not fully capture the short-term variability observed in the actual trip duration data.
+This capstone compared ARIMA and LSTM for 14-day forecasting of daily average Uber trip duration in New York City on the same 366-day time series and the same test window, using sMAPE and MASE. ARIMA (auto-selected order) and an LSTM with one layer, early stopping, and recursive forecasting were implemented and evaluated. On the held-out 14-day period, both methods achieved similar metrics (Table~\ref{tab:compare}). ARIMA had slightly lower sMAPE and MASE in the reported run. The LSTM training and validation loss curves (Figure~\ref{fig:lstm_loss}) showed convergence without clear overfitting. Limitations include the small sample size, univariate setup, and LSTM run-to-run variability (mitigated by reporting the mean of 5 runs). The capstone shows that although LSTM networks are widely used for time-series forecasting, they do not always outperform classical statistical models when datasets are relatively small. ARIMA models can perform well when the underlying patterns are relatively simple. In contrast, neural networks typically require larger datasets to effectively learn complex relationships and may produce overly smooth forecasts when limited training data is available. In this project, the ARIMA model provided a stable baseline forecast, while the LSTM model generated a smoothed trend that did not fully capture the short-term variability observed in the actual trip duration data.
 
 \subsection{Future Work}
 
