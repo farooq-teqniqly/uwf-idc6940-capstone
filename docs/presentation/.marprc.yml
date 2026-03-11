@@ -1,0 +1,6 @@
+# Marp CLI configuration for this presentation.
+# Registers the custom UWF Elevated Blue theme so it can be referenced
+# by name in the presentation.md frontmatter (theme: uwf-elevated-blue).
+
+themeSet: ./uwf-elevated-blue.css
+allowLocalFiles: true

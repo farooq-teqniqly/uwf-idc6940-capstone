@@ -1,0 +1,312 @@
+/* @theme uwf-elevated-blue */
+
+/*
+  UWF Elevated Blue — Marp Theme
+  Generated from ElevatedTemplate_Blue_Standard.pptx
+
+  Color palette (from ppt/theme/theme1.xml and ppt/slideLayouts/*.xml):
+    #0069AA  — UWF Primary Blue   (headings, borders, table headers)
+    #44546A  — Dark Navy          (dark2, secondary text)
+    #5B9BD5  — Accent Blue 1      (accent1)
+    #4472C4  — Accent Blue 2      (accent5)
+    #ED7D31  — Orange             (accent2)
+    #FFC000  — Gold               (accent4)
+    #E7E6E6  — Light Gray         (light2, table alternate rows)
+    #0563C1  — Hyperlink Blue     (hlink)
+
+  Fonts (from ppt/theme/theme1.xml fontScheme):
+    Headings : Calibri Light (majorFont latin)
+    Body     : Calibri       (minorFont latin)
+    Fallback : Arial, sans-serif
+
+  Slide dimensions: 4:3 (960 × 720 px)
+    Matches PPTX sldSz cx="9144000" cy="6858000" type="screen4x3"
+
+  Backgrounds (extracted from ppt/media/):
+    uwf-bg-content.jpg — horizontal blue header bar with UWF logo (content slides)
+    uwf-bg-title.jpg   — vertical blue left sidebar with UWF logo  (title slide)
+*/
+
+/* ============================================================
+   BASE — Content slides (default)
+   Background: dark blue header bar across the top with UWF logo
+   and nautilus pattern; white content area below.
+   Header bar height ≈ 13 % of 720 px ≈ 94 px → pad-top 108 px.
+   ============================================================ */
+
+section {
+  width: 960px;
+  height: 720px;
+  font-family: 'Calibri', 'Arial', sans-serif;
+  font-size: 1.2rem;
+  color: #222222;
+  background-color: #ffffff;
+  background-image: url('./uwf-bg-content.jpg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  padding: 108px 55px 36px 55px;
+  box-sizing: border-box;
+  line-height: 1.45;
+  position: relative;
+}
+
+/* --- Headings --------------------------------------------- */
+
+section h1 {
+  font-family: 'Calibri Light', 'Calibri', 'Arial', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #0069AA;
+  margin: 0 0 0.4rem 0;
+  padding-bottom: 5px;
+  border-bottom: 2.5px solid #0069AA;
+  line-height: 1.2;
+}
+
+section h2 {
+  font-family: 'Calibri Light', 'Calibri', 'Arial', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #0069AA;
+  margin: 0.55rem 0 0.2rem 0;
+  line-height: 1.2;
+}
+
+section h3 {
+  font-family: 'Calibri', 'Arial', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #44546A;
+  margin: 0.45rem 0 0.15rem 0;
+}
+
+section h4 {
+  font-family: 'Calibri', 'Arial', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #44546A;
+  margin: 0.4rem 0 0.1rem 0;
+}
+
+section p {
+  margin: 0.25rem 0;
+}
+
+/* --- Lists ------------------------------------------------- */
+
+section ul,
+section ol {
+  margin: 0.15rem 0 0.25rem 1.3rem;
+  padding: 0;
+}
+
+section li {
+  margin-bottom: 0.2rem;
+}
+
+section li > ul,
+section li > ol {
+  margin-top: 0.1rem;
+}
+
+/* --- Tables ----------------------------------------------- */
+
+section table {
+  border-collapse: collapse;
+  font-size: 1rem;
+  width: 100%;
+  margin: 0.4rem 0;
+}
+
+section th {
+  background-color: #0069AA;
+  color: #ffffff;
+  font-weight: 700;
+  padding: 6px 10px;
+  text-align: left;
+  border: 1px solid #005a91;
+  font-family: 'Calibri', 'Arial', sans-serif;
+}
+
+section td {
+  padding: 5px 10px;
+  border: 1px solid #c8d0d8;
+  vertical-align: top;
+}
+
+section tr:nth-child(even) td {
+  background-color: #E7E6E6;
+}
+
+/* --- Code -------------------------------------------------- */
+
+section code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.88em;
+  background-color: #eef4fa;
+  color: #0069AA;
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+section pre {
+  background-color: #eef4fa;
+  border-left: 4px solid #0069AA;
+  padding: 10px 14px;
+  border-radius: 0 4px 4px 0;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  margin: 0.4rem 0;
+}
+
+section pre code {
+  background: none;
+  color: #222222;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* --- Blockquote ------------------------------------------- */
+
+section blockquote {
+  background: #eef4fb;
+  border-left: 5px solid #0069AA;
+  padding: 8px 16px;
+  margin: 0.4rem 0;
+  font-style: normal;
+  font-size: 1.1rem;
+  color: #333333;
+  border-radius: 0 4px 4px 0;
+}
+
+section blockquote p {
+  margin: 0;
+}
+
+/* --- Links ------------------------------------------------- */
+
+section a {
+  color: #0563C1;
+  text-decoration: none;
+}
+
+section a:hover {
+  text-decoration: underline;
+}
+
+/* --- Images ----------------------------------------------- */
+
+section img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* --- Horizontal rule -------------------------------------- */
+
+section hr {
+  border: none;
+  border-top: 2px solid #0069AA;
+  margin: 0.5rem 0;
+}
+
+/* --- Pagination ------------------------------------------- */
+
+section::after {
+  font-size: 0.72rem;
+  color: #888888;
+  font-family: 'Calibri', 'Arial', sans-serif;
+  content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
+  position: absolute;
+  bottom: 10px;
+  right: 18px;
+}
+
+/* ============================================================
+   TITLE SLIDE  (class: title-slide)
+   Background: deep navy vertical sidebar on left (~27 % of
+   960 px ≈ 259 px) containing the UWF logo; white right panel.
+   Padding-left pushes all content into the white area.
+   ============================================================ */
+
+section.title-slide {
+  background-image: url('./uwf-bg-title.jpg');
+  background-size: 100% 100%;
+  /* 265 px clears the blue left sidebar */
+  padding: 40px 45px 40px 272px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+section.title-slide h1 {
+  font-family: 'Calibri Light', 'Calibri', 'Arial', sans-serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #0069AA;
+  text-align: left;
+  border-bottom: none;
+  margin-bottom: 0.6rem;
+  line-height: 1.3;
+}
+
+section.title-slide h2,
+section.title-slide h3 {
+  color: #44546A;
+  border-bottom: none;
+  font-size: 1.05rem;
+  margin: 0.15rem 0;
+}
+
+section.title-slide p,
+section.title-slide strong {
+  color: #44546A;
+  font-size: 1.05rem;
+  margin: 0.15rem 0;
+}
+
+section.title-slide em {
+  color: #0069AA;
+  font-style: italic;
+}
+
+/* Hide page number on title slide */
+section.title-slide::after {
+  display: none;
+}
+
+/* ============================================================
+   THANK-YOU / CLOSING SLIDE  (class: closing)
+   Same left-sidebar layout as title, slightly different emphasis
+   ============================================================ */
+
+section.closing {
+  background-image: url('./uwf-bg-title.jpg');
+  background-size: 100% 100%;
+  padding: 40px 45px 40px 272px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+section.closing h1 {
+  color: #0069AA;
+  border-bottom: none;
+  font-size: 2rem;
+}
+
+section.closing p,
+section.closing a {
+  color: #44546A;
+  font-size: 1.05rem;
+}
+
+section.closing h3 {
+  color: #44546A;
+  margin-top: 0.8rem;
+}
+
+section.closing::after {
+  display: none;
+}
