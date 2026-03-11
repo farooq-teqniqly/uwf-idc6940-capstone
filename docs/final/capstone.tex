@@ -82,7 +82,7 @@ The preprocessing detailed in this section is common to both the ARIMA and LSTM 
 \item \textbf{Loading for modeling.} Both methods use the same CSV file containing the 366 data points (Listing~\ref{lst:load_time_series}). No additional shared preprocessing (e.g., scaling or differencing) is applied before method-specific steps. ARIMA may use differencing in the model, and LSTM uses train/validation/test splits and scaling within its pipeline.
 \end{enumerate}
 
-The primary data source used in the capstone is the CSV file produced by the pipeline above. The dataset is loaded in R via \texttt{read.csv()} (Listing~\ref{lst:load_time_series}). The series has 366 rows (one per day in 2024) and 2 columns: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are no missing values. The CSV is located in \texttt{data/time\_series.csv}. The same file is used by both ARIMA (\texttt{code/arima\_forecast.qmd}) and LSTM (\texttt{code/lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
+The primary data source used in the capstone is the CSV file produced by the pipeline above. The dataset is loaded in R via \texttt{read.csv()} (Listing~\ref{lst:load_time_series}). The series has 366 rows (one per day in 2024) and 2 columns: \texttt{pickup\_date} (Date) and \texttt{avg\_duration\_min} (numeric). There are no missing values. The CSV is located in \texttt{data/\allowbreak time\_series.csv}. The same file is used by both ARIMA (\texttt{code/\allowbreak arima\_forecast.qmd}) and LSTM (\texttt{code/\allowbreak lstm\_forecast.qmd}). Table~\ref{tab:csv_preview} shows the first five rows of the loaded data (with \texttt{weekday} derived for display).
 
 \begin{table}[ht]
 \centering
@@ -170,9 +170,9 @@ The project uses publicly available NYC TLC trip record data. No human subjects 
 
 \subsection{What Was Implemented}
 
-\paragraph{Preprocessing (\texttt{code/preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
+\paragraph{Preprocessing (\texttt{code/\allowbreak preprocessing.ipynb}).} A PySpark Jupyter notebook loads the NYC TLC High-Volume FHV parquet data, filters to Uber trips, derives \texttt{trip\_duration\_min} and \texttt{avg\_speed\_mph}, applies basic range filters and IQR-based outlier removal, aggregates by \texttt{pickup\_date} to daily \texttt{avg\_duration\_min}, and writes the 366-day time series to CSV (see Section~\ref{sec:preprocessing} and Appendix~\ref{appendix:pyspark}).
 
-\paragraph{ARIMA (\texttt{code/arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{time\_series.csv} (Listing~\ref{lst:load_time_series}) and uses the same chronological split as LSTM, i.e. last 14 days as test, preceding 30 as validation, and the remainder as training (Listing~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing~\ref{lst:arima_model}), which selects ARIMA(1, 1, 4)). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/arima\_forecast\_14day.csv} for comparison with LSTM (Listing~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:time_series_eval}).
+\paragraph{ARIMA (\texttt{code/\allowbreak arima\_forecast.qmd}).} The R/Quarto pipeline loads \texttt{time\_series.csv} (Listing~\ref{lst:load_time_series}) and uses the same chronological split as LSTM, i.e. last 14 days as test, preceding 30 as validation, and the remainder as training (Listing~\ref{lst:training_time_series}). It runs \texttt{auto.arima} (Listing~\ref{lst:arima_model}), which selects ARIMA(1,~1,~4). A 44-step forecast is produced and the last 14 steps are extracted to align with the LSTM test window (Listing~\ref{lst:time_series_forecast}). The forecasted values are written to \texttt{data/\allowbreak arima\_forecast\_14day.csv} for comparison with LSTM (Listing~\ref{lst:save_ts_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:time_series_eval}).
 
 \paragraph{LSTM (\texttt{code/lstm\_forecast.qmd}).} The R/Quarto pipeline loads the same CSV (Listing~\ref{lst:lstm_load_time_series}) and applies a chronological train/validation/test split (Listing~\ref{lst:training_time_series}). Values are min-max scaled using the training range (Listing~\ref{lst:lstm_scaling}). Sliding-window sequences of length \texttt{SEQ\_LEN = 21} are built via \texttt{create\_sequences()} (Listing~\ref{lst:lstm_seq}). The model is a single LSTM layer (32 neurons), dropout (0.2), and a dense output, implemented with the Keras R API (Listing~\ref{lst:lstm_model}). Training uses 20\% of training sequences as validation for early stopping, Adam optimizer, MSE loss, up to 100 epochs, and a batch size of 16. The 14-day forecast is produced recursively. The last 21-day window before the test period is fed to the model. Each predicted value is appended and the window is rolled forward. The pipeline saves \texttt{data/lstm\_forecast\_14day.csv} for comparison to the ARIMA model (Listing~\ref{lst:lstm_forecast}). Finally, the pipeline computes sMAPE and MASE (Listing~\ref{lst:lstm_eval}).
 
@@ -279,7 +279,7 @@ Concrete next steps include:
 
 \begin{enumerate}
 \item Extending the dataset with additional years of NYC TLC data to improve LSTM training and reassess both methods.
-\item Refining LSTM hyperparameters (sequence length, number of units, dropout, epochs).
+\item Refining LSTM hyperparameters (sequence length, number of units, dropout, and epochs).
 \item Solving the sMAPE and MASE reproducibility problem in LSTM networks. 
 \end{enumerate}
 
@@ -290,7 +290,8 @@ Concrete next steps include:
 \section{Download Instructions}
 \label{sec:downloads}
 
-The dataset, QMD files, PySpark notebook, and outputs are also available for download via a public GitHub release at \url{https://github.com/farooq-teqniqly/uwf-idc6940-capstone-files/releases/tag/capstone-v0.3}
+The dataset, QMD files, PySpark notebook, and outputs are also available for download via a public GitHub release at:\\
+\url{https://github.com/farooq-teqniqly/uwf-idc6940-capstone-files/releases/tag/capstone-v0.3}
 
 Download and extract the ZIP file to access the CSV dataset and the code.
 
