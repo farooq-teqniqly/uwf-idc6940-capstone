@@ -87,7 +87,7 @@ When writing academic documents for this capstone project, follow these style an
 ### Academic Tone and Terminology
 
 - Use **"this capstone"** or **"the capstone"** (not "this study") when referring to the capstone project itself (e.g., "This capstone compares ARIMA and LSTM", "The capstone predicts daily average trip duration")
-- Use "this study" when referring to *other* work being reviewed in the literature (e.g., "This study addresses", "the study by Prabhat et al.")
+- Use "this study" when referring to _other_ work being reviewed in the literature (e.g., "This study addresses", "the study by Prabhat et al.")
 - Use past tense when describing what authors did: "The authors used" not "The authors use"
 - Use "Although" instead of "While" in formal contexts (e.g., "Although this capstone focuses" not "While the paper focuses")
 
@@ -148,12 +148,14 @@ Three main approaches are available, depending on the research question:
 ### Four-Phase Review Process
 
 **Phase 1: Design**
+
 - Determine if the review is needed and what contribution it will make
 - Define specific research question(s) and select appropriate methodology
 - Develop search strategy: search terms, databases, inclusion/exclusion criteria
 - Consider the target audience and potential impact
 
 **Phase 2: Conduct**
+
 - Pilot test the review process on a smaller sample
 - Use multiple reviewers for quality assurance
 - Select articles systematically (read abstracts first, then full texts)
@@ -161,12 +163,14 @@ Three main approaches are available, depending on the research question:
 - Scan references in selected articles for additional relevant work (if appropriate for methodology)
 
 **Phase 3: Analysis**
+
 - Abstract appropriate information from articles (descriptive, effects/findings, or conceptualizations)
 - Choose analysis method appropriate to research question
 - Train reviewers to ensure consistency in data abstraction
 - Document analysis process clearly
 
 **Phase 4: Writing**
+
 - Clearly communicate motivation and need for the review
 - Transparently describe methodology and process
 - Present results clearly and explain all findings
@@ -194,7 +198,7 @@ For this capstone project's literature reviews:
 
 - **Purpose**: Synthesize existing research on trip duration prediction, time-series forecasting, and ML-based prediction methods
 - **Approach**: Likely semi-systematic or integrative, given the interdisciplinary nature of the topic
-- **Focus Areas**: 
+- **Focus Areas**:
   - Time-series forecasting methods for transportation data
   - Machine learning approaches for trip duration prediction
   - Comparative studies of forecasting vs ML methods
@@ -213,11 +217,13 @@ $content = Get-Content 'filename.tex' -Raw; $text = $content -replace '\\[a-zA-Z
 ```
 
 **Usage**: Replace `'filename.tex'` with the actual LaTeX file path. This command:
+
 - Removes LaTeX commands, citations, and formatting
 - Counts only actual words (starting with letters)
 - Provides an accurate word count for assignment requirements
 
-**Example**: 
+**Example**:
+
 ```powershell
 cd "C:\src\my\uwf-idc6940-capstone\docs\hw3"; $content = Get-Content 'hw3.tex' -Raw; $text = $content -replace '\\[a-zA-Z]+\{[^\}]*\}|\$[^\$]*\$|\\cite\{[^\}]*\}|\\section\{[^\}]*\}|\\subsection\{[^\}]*\}|\\begin\{[^\}]*\}|\\end\{[^\}]*\}|\\item|\\textbf|\\cite|\\documentclass|\\usepackage|\\title|\\author|\\date|\\maketitle|\\tableofcontents|\\bibliographystyle|\\bibliography|\\begin|\\end', ''; ($text -split '\s+' | Where-Object { $_ -match '^[a-zA-Z]' }).Count
 ```
