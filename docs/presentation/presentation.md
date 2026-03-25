@@ -365,14 +365,14 @@ about on the next slide."
 
 ### Origins
 
-| Component               | Source                                                                           |
-| ----------------------- | -------------------------------------------------------------------------------- |
-| PySpark preprocessing   | **Original** - written from scratch using PySpark docs & NYC TLC data dictionary |
-| ARIMA pipeline (R)      | **Original** - uses standard `forecast::auto.arima` library functions            |
-| LSTM pipeline (R/Keras) | **Original** - adapts documented Keras time-series patterns to R                 |
-| ggplot2 visualization   | **Original** - standard ggplot2 idioms                                           |
+| Component               | Source                                                            |
+| ----------------------- | ----------------------------------------------------------------- |
+| PySpark preprocessing   | written from scratch using PySpark docs & NYC TLC data dictionary |
+| ARIMA pipeline (R)      | uses standard `forecast::auto.arima` library functions            |
+| LSTM pipeline (R/Keras) | adapts documented Keras time-series patterns to R                 |
+| ggplot2 visualization   | standard ggplot2 idioms                                           |
 
-### Closest public references (no code copied)
+### Closest public references
 
 - [**rwanjohi/Time-series-forecasting-using-LSTM-in-R**](https://github.com/rwanjohi/Time-series-forecasting-using-LSTM-in-R) - similar concept, different API (sequential vs. functional) and preprocessing approach
 - [**keras.io timeseries forecasting tutorial**](https://keras.io/examples/timeseries/timeseries_weather_forecasting/) - sliding-window + LSTM pattern (Python); adapted to R
